@@ -1,44 +1,39 @@
 from uuid import UUID, uuid4
-
-from app.core.exceptions import TaskNotFoundError
-from app.models.task import Task
 from app.schemas.task import TaskCreate, TaskUpdate
-
+from app.repositories.task_repository import TaskRepository
+from app.models.task import Task
+from app.core.exceptions import TaskNotFoundError
 
 class TaskService:
-    def __init__(self):
-        self._tasks: dict[UUID, Task] = {}
+  def __init__(self, repository: TaskRepository):
+    self.repository = repository
 
-    def create_task(self, task_data: TaskCreate) -> Task:
-        task = Task(
-            id=uuid4(),
-            title=task_data.title,
-            description=task_data.description,
-            completed=False,
-        )
+  async def create_task(self, task_data: TaskCreate) -> Task:
+    task = Task(
+      id = uuid4(),
+      title = task_data.title,
+      description= task_data.description,
+      completed= False
+    )
 
-        self._tasks[task.id] = task
-        return task
-
-    def get_tasks(self) -> list[Task]:
-        return list(self._tasks.values())
-
-    def get_task(self, task_id: UUID) -> Task:
-        task = self._tasks.get(task_id)
-        if task is None:
-            raise TaskNotFoundError(task_id)
-        return task
-
-    def update_task(self, task_id: UUID, task_data: TaskUpdate) -> Task:
-        existing_task = self.get_task(task_id)
-        update_data = task_data.model_dump(exclude_unset=True)
-        for key, value in update_data.items():
-            setattr(existing_task, key, value)
-        return existing_task
-
-    def delete_task(self, task_id: UUID) -> None:
-        self.get_task(task_id)
-        del self._tasks[task_id]
+    await self.repository.create(task)
+    return task
 
 
-task_service = TaskService()
+  async def get_tasks(self,skip:int=0, limit:int=10) -> list[Task]:
+    return await self.repository.get_all(skip,limit)
+
+  async def get_task(self, task_id: UUID) -> Task:
+    task = await self.repository.get_by_id(task_id)
+    if task is None:
+      raise TaskNotFoundError(task_id)
+    return task
+
+  async def update_task(self, task_id:UUID, task_data: TaskUpdate) -> Task:
+    existing_task = await self.get_task(task_id)
+    update_data = task_data.model_dump(exclude_unset=True)
+    return await self.repository.update(existing_task,update_data)
+
+  async def delete_task(self, task_id: UUID) -> None:
+    existing_task = await self.get_task(task_id)
+    await self.repository.delete(existing_task)
