@@ -13,9 +13,14 @@ class TaskService:
     async def create_task(self, task_data: TaskCreate) -> Task:
         task = Task(
             id=uuid4(),
+            project_id=task_data.project_id,
+            created_by=task_data.created_by,
+            assignee_id=task_data.assignee_id,
             title=task_data.title,
             description=task_data.description,
-            completed=False,
+            status=task_data.status,
+            priority=task_data.priority,
+            due_date=task_data.due_date,
         )
 
         await self.repository.create(task)
