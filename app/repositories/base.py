@@ -1,11 +1,8 @@
-from typing import TypeVar
 from uuid import UUID
 
 from sqlalchemy import func, select
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import DeclarativeBase
-
-ModelType = TypeVar("ModelType", bound=DeclarativeBase)
 
 
 class BaseRepository[ModelType: DeclarativeBase]:
@@ -34,7 +31,11 @@ class BaseRepository[ModelType: DeclarativeBase]:
     async def get_by_id(self, obj_id: UUID) -> ModelType | None:
         return await self.session.get(self.model, obj_id)
 
-    async def update(self, obj: ModelType, data: dict) -> ModelType:
+    async def update(
+        self,
+        obj: ModelType,
+        data: dict,
+    ) -> ModelType:
         for key, value in data.items():
             setattr(obj, key, value)
 
