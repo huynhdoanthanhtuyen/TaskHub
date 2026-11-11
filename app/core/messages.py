@@ -23,3 +23,6 @@ FULL_NAME_CANNOT_BE_NULL = "full_name cannot be null"
 ROLE_CANNOT_BE_NULL = "role cannot be null"
 IS_ACTIVE_CANNOT_BE_NULL = "is_active cannot be null"
 FIELD_CANNOT_BE_NULL = "{field} cannot be null"
+
+LAST_ACTIVE_ADMIN = "Cannot remove the last active admin"
+CANNOT_DELETE_SELF = "Admin cannot delete their own account"
