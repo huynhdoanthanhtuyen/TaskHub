@@ -1,3 +1,4 @@
+from app.models.admin_management_lock import AdminManagementLock
 from app.models.comment import Comment
 from app.models.label import Label
 from app.models.project import Project
@@ -9,6 +10,7 @@ from app.models.workspace import Workspace
 from app.models.workspace_member import WorkspaceMember
 
 __all__ = [
+    "AdminManagementLock",
     "Comment",
     "Label",
     "Project",
