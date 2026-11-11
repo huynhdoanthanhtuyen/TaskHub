@@ -83,3 +83,43 @@ class EmailAlreadyExistsError(AppException):
             message=messages.EMAIL_ALREADY_EXISTS,
             status_code=status.HTTP_409_CONFLICT,
         )
+
+
+class LastActiveAdminError(AppException):
+    def __init__(self) -> None:
+        super().__init__(
+            message=messages.LAST_ACTIVE_ADMIN,
+            status_code=status.HTTP_409_CONFLICT,
+        )
+
+
+class CannotDeleteSelfError(AppException):
+    def __init__(self) -> None:
+        super().__init__(
+            message=messages.CANNOT_DELETE_SELF,
+            status_code=status.HTTP_403_FORBIDDEN,
+        )
+
+
+class CannotModifySelfError(AppException):
+    def __init__(self):
+        super().__init__(
+            message=messages.CANNOT_DEMOTE_OR_DEACTIVATE,
+            status_code=status.HTTP_403_FORBIDDEN,
+        )
+
+
+class UserHasRelatedResourcesError(AppException):
+    def __init__(self) -> None:
+        super().__init__(
+            message=messages.USER_HAS_RELATED_RESOURCES,
+            status_code=status.HTTP_409_CONFLICT,
+        )
+
+
+class NewPasswordSameAsOldError(AppException):
+    def __init__(self) -> None:
+        super().__init__(
+            message=messages.NEW_PASSWORD_SAME_AS_OLD,
+            status_code=status.HTTP_400_BAD_REQUEST,
+        )
