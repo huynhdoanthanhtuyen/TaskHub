@@ -47,7 +47,7 @@ async def seed_data():
 
             admin = User(
                 id=UUID(IDS["admin"]),
-                email="admin@taskhub.test",
+                email="admin.taskhub@example.com",
                 full_name="Admin TaskHub",
                 hashed_password=password_hash,
                 role="ADMIN",
@@ -56,7 +56,7 @@ async def seed_data():
             )
             an = User(
                 id=UUID(IDS["an"]),
-                email="an@taskhub.test",
+                email="an.taskhub@example.com",
                 full_name="Nguyen Van An",
                 hashed_password=password_hash,
                 role="MEMBER",
@@ -65,7 +65,7 @@ async def seed_data():
             )
             binh = User(
                 id=UUID(IDS["binh"]),
-                email="binh@taskhub.test",
+                email="binh.taskhub@example.com",
                 full_name="Tran Thi Binh",
                 hashed_password=password_hash,
                 role="MEMBER",

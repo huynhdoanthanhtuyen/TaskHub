@@ -74,3 +74,19 @@ class EmailAlreadyExistsError(AppException):
             message=messages.EMAIL_ALREADY_EXISTS,
             status_code=409,
         )
+
+
+class LastActiveAdminError(AppException):
+    def __init__(self) -> None:
+        super().__init__(
+            message=messages.LAST_ACTIVE_ADMIN,
+            status_code=409,
+        )
+
+
+class CannotDeleteSelfError(AppException):
+    def __init__(self) -> None:
+        super().__init__(
+            message=messages.CANNOT_DELETE_SELF,
+            status_code=403,
+        )
