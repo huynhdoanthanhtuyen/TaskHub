@@ -14,7 +14,7 @@ router = APIRouter()
 
 def get_task_service(session: Annotated[AsyncSession, Depends(get_db)]) -> TaskService:
     repository = TaskRepository(session)
-    return TaskService(repository)
+    return TaskService(repository, session)
 
 
 TaskServiceDep = Annotated[TaskService, Depends(get_task_service)]
