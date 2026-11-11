@@ -4,9 +4,10 @@ from contextlib import asynccontextmanager
 from fastapi import FastAPI, Request
 from fastapi.responses import JSONResponse
 
+from app.api.v1.endpoints.auth import router as auth_router
 from app.api.v1.endpoints.tasks import router as tasks_router
 from app.core.config import settings
-from app.core.exceptions import TaskNotFoundError
+from app.core.exceptions import AppException
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
@@ -27,9 +28,16 @@ app = FastAPI(
 )
 
 
-@app.exception_handler(TaskNotFoundError)
-async def task_not_found_handler(request: Request, exc: TaskNotFoundError):
-    return JSONResponse(status_code=404, content={"detail": str(exc)})
+@app.exception_handler(AppException)
+async def app_exception_handler(
+    request: Request,
+    exc: AppException,
+) -> JSONResponse:
+    return JSONResponse(
+        status_code=exc.status_code,
+        content={"detail": exc.message},
+        headers=exc.headers,
+    )
 
 
 @app.get("/")
@@ -41,4 +49,9 @@ app.include_router(
     tasks_router,
     prefix="/api/v1/tasks",
     tags=["Tasks"],
+)
+
+app.include_router(
+    auth_router,
+    prefix="/api/v1",
 )
