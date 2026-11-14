@@ -6,7 +6,7 @@ from fastapi.responses import JSONResponse
 
 from app.api.v1.endpoints.tasks import router as tasks_router
 from app.core.config import settings
-from app.core.exceptions import TaskNotFoundError
+from app.core.exceptions import RelatedResourceNotFoundError, TaskNotFoundError
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
@@ -31,6 +31,15 @@ app = FastAPI(
 async def task_not_found_handler(request: Request, exc: TaskNotFoundError):
     return JSONResponse(status_code=404, content={"detail": str(exc)})
 
+@app.exception_handler(RelatedResourceNotFoundError)
+async def related_resource_not_found_handler(
+    request: Request,
+    exc: RelatedResourceNotFoundError,
+) -> JSONResponse:
+    return JSONResponse(
+        status_code=404,
+        content={"detail": str(exc)},
+    )
 
 @app.get("/")
 async def root():
