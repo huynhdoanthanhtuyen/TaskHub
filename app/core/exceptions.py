@@ -123,3 +123,83 @@ class NewPasswordSameAsOldError(AppException):
             message=messages.NEW_PASSWORD_SAME_AS_OLD,
             status_code=status.HTTP_400_BAD_REQUEST,
         )
+
+
+class WorkspaceNotFoundError(AppException):
+    def __init__(self):
+        super().__init__(
+            message=messages.WORKSPACE_NOT_FOUND,
+            status_code=status.HTTP_404_NOT_FOUND,
+        )
+
+
+class WorkspaceAccessDeniedError(AppException):
+    def __init__(self):
+        super().__init__(
+            message=messages.WORKSPACE_ACCESS_DENIED,
+            status_code=status.HTTP_403_FORBIDDEN,
+        )
+
+
+class WorkspaceOwnerRequiredError(AppException):
+    def __init__(self):
+        super().__init__(
+            message=messages.WORKSPACE_OWNER_REQUIRED,
+            status_code=status.HTTP_403_FORBIDDEN,
+        )
+
+
+class WorkspaceMemberNotFoundError(AppException):
+    def __init__(self):
+        super().__init__(
+            message=messages.WORKSPACE_MEMBER_NOT_FOUND,
+            status_code=status.HTTP_404_NOT_FOUND,
+        )
+
+
+class WorkspaceMemberAlreadyExistsError(AppException):
+    def __init__(self):
+        super().__init__(
+            message=messages.WORKSPACE_MEMBER_ALREADY_EXISTS,
+            status_code=status.HTTP_409_CONFLICT,
+        )
+
+
+class WorkspaceOwnerCannotBeRemovedError(AppException):
+    def __init__(self):
+        super().__init__(
+            message=messages.WORKSPACE_OWNER_CANNOT_BE_REMOVED,
+            status_code=status.HTTP_400_BAD_REQUEST,
+        )
+
+
+class WorkspaceOwnerCannotBeInvitedError(AppException):
+    def __init__(self):
+        super().__init__(
+            message=messages.WORKSPACE_OWNER_CANNOT_BE_INVITED,
+            status_code=status.HTTP_400_BAD_REQUEST,
+        )
+
+
+class WorkspaceMemberUserNotFoundError(AppException):
+    def __init__(self):
+        super().__init__(
+            message=messages.WORKSPACE_MEMBER_USER_NOT_FOUND,
+            status_code=status.HTTP_404_NOT_FOUND,
+        )
+
+
+class WorkspaceInvalidRoleError(AppException):
+    def __init__(self):
+        super().__init__(
+            message=messages.WORKSPACE_INVALID_ROLE,
+            status_code=status.HTTP_400_BAD_REQUEST,
+        )
+
+
+class WorkspaceHasProjectsError(AppException):
+    def __init__(self):
+        super().__init__(
+            message=messages.WORKSPACE_HAS_PROJECTS,
+            status_code=status.HTTP_409_CONFLICT,
+        )
