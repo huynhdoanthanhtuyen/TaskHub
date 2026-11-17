@@ -28,3 +28,16 @@ LAST_ACTIVE_ADMIN = "Cannot remove the last active admin"
 CANNOT_DELETE_SELF = "Admin cannot delete their own account"
 USER_HAS_RELATED_RESOURCES = "Cannot delete user because related resources still exist."
 NEW_PASSWORD_SAME_AS_OLD = "New password must be different from the current password."
+
+# WORKSPACE
+WORKSPACE_NOT_FOUND = "Workspace not found"
+WORKSPACE_ACCESS_DENIED = "You do not have access to this workspace"
+WORKSPACE_OWNER_REQUIRED = "Only the workspace owner can perform this action"
+
+WORKSPACE_MEMBER_NOT_FOUND = "Workspace member not found"
+WORKSPACE_MEMBER_ALREADY_EXISTS = "User is already a workspace member"
+WORKSPACE_OWNER_CANNOT_BE_REMOVED = "Workspace owner cannot be removed"
+WORKSPACE_OWNER_CANNOT_BE_INVITED = "Workspace owner already has access"
+WORKSPACE_MEMBER_USER_NOT_FOUND = "User to invite was not found"
+WORKSPACE_INVALID_ROLE = "Invalid workspace role"
+WORKSPACE_HAS_PROJECTS = "Cannot delete workspace while it has projects"
