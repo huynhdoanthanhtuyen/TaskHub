@@ -1,7 +1,7 @@
 import uuid
 from typing import Annotated
 
-from fastapi import APIRouter, Depends, status
+from fastapi import APIRouter, Depends, Query, status
 
 from app.api.deps import CurrentUser, DbSession
 from app.models.workspace import Workspace
@@ -11,6 +11,7 @@ from app.repositories.workspace_member_repository import WorkspaceMemberReposito
 from app.repositories.workspace_repository import WorkspaceRepository
 from app.schemas.workspace import (
     WorkspaceCreate,
+    WorkspaceListResponse,
     WorkspaceMemberCreate,
     WorkspaceMemberResponse,
     WorkspaceResponse,
@@ -63,13 +64,26 @@ async def create_workspace(
 
 @router.get(
     "",
-    response_model=list[WorkspaceResponse],
+    response_model=WorkspaceListResponse,
 )
 async def list_workspaces(
     current_user: CurrentUser,
     service: WorkspaceServiceDep,
-) -> list[Workspace]:
-    return await service.list_workspaces(current_user)
+    offset: int = Query(default=0, ge=0),
+    limit: int = Query(default=10, ge=1, le=100),
+):
+    workspaces, total = await service.list_workspaces(
+        offset=offset,
+        limit=limit,
+        current_user=current_user,
+    )
+
+    return WorkspaceListResponse(
+        items=workspaces,
+        total=total,
+        offset=offset,
+        limit=limit,
+    )
 
 
 @router.get(

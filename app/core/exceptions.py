@@ -189,17 +189,17 @@ class WorkspaceMemberUserNotFoundError(AppException):
         )
 
 
-class WorkspaceInvalidRoleError(AppException):
-    def __init__(self):
-        super().__init__(
-            message=messages.WORKSPACE_INVALID_ROLE,
-            status_code=status.HTTP_400_BAD_REQUEST,
-        )
-
-
 class WorkspaceHasProjectsError(AppException):
     def __init__(self):
         super().__init__(
             message=messages.WORKSPACE_HAS_PROJECTS,
             status_code=status.HTTP_409_CONFLICT,
+        )
+
+
+class WorkspaceInvalidRoleError(AppException):
+    def __init__(self):
+        super().__init__(
+            message=messages.WORKSPACE_INVALID_ROLE,
+            status_code=status.HTTP_400_BAD_REQUEST,
         )

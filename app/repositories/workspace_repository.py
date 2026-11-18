@@ -1,6 +1,6 @@
 import uuid
 
-from sqlalchemy import or_, select
+from sqlalchemy import func, or_, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.models.workspace import Workspace
@@ -14,8 +14,10 @@ class WorkspaceRepository(BaseRepository[Workspace]):
 
     async def get_by_user(
         self,
+        offset: int,
+        limit: int,
         user_id: uuid.UUID,
-    ) -> list[Workspace]:
+    ) -> tuple[list[Workspace], int]:
         member_exists = (
             select(WorkspaceMember.workspace_id)
             .where(
@@ -25,28 +27,26 @@ class WorkspaceRepository(BaseRepository[Workspace]):
             .exists()
         )
 
+        condition = or_(
+            Workspace.owner_id == user_id,
+            member_exists,
+        )
+
+        count_stmt = select(func.count()).select_from(Workspace).where(condition)
+
+        total = await self.session.scalar(count_stmt)
+
         stmt = (
             select(Workspace)
-            .where(
-                or_(
-                    Workspace.owner_id == user_id,
-                    member_exists,
-                )
-            )
+            .where(condition)
             .order_by(
                 Workspace.created_at.desc(),
                 Workspace.id.desc(),
             )
+            .offset(offset)
+            .limit(limit)
         )
 
         result = await self.session.execute(stmt)
-        return list(result.scalars().all())
 
-    async def get_by_id_for_update(
-        self,
-        workspace_id: uuid.UUID,
-    ) -> Workspace | None:
-        stmt = select(Workspace).where(Workspace.id == workspace_id).with_for_update()
-
-        result = await self.session.execute(stmt)
-        return result.scalar_one_or_none()
+        return list(result.scalars().all()), total or 0
