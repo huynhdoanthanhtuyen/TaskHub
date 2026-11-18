@@ -1,12 +1,20 @@
 import uuid
 
-from fastapi import status
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from app.core import messages
 from app.core.enums import WorkspaceRole
-from app.core.exceptions import AppException
+from app.core.exceptions import (
+    WorkspaceHasProjectsError,
+    WorkspaceInvalidRoleError,
+    WorkspaceMemberAlreadyExistsError,
+    WorkspaceMemberNotFoundError,
+    WorkspaceMemberUserNotFoundError,
+    WorkspaceNotFoundError,
+    WorkspaceOwnerCannotBeInvitedError,
+    WorkspaceOwnerCannotBeRemovedError,
+    WorkspaceOwnerRequiredError,
+)
 from app.models.user import User
 from app.models.workspace import Workspace
 from app.models.workspace_member import WorkspaceMember
@@ -40,10 +48,7 @@ class WorkspaceService:
         workspace = await self.workspace_repository.get_by_id(workspace_id)
 
         if workspace is None:
-            raise AppException(
-                messages.WORKSPACE_NOT_FOUND,
-                status.HTTP_404_NOT_FOUND,
-            )
+            raise WorkspaceNotFoundError()
 
         return workspace
 
@@ -61,10 +66,7 @@ class WorkspaceService:
         )
 
         if member is None:
-            raise AppException(
-                messages.WORKSPACE_ACCESS_DENIED,
-                status.HTTP_403_FORBIDDEN,
-            )
+            raise WorkspaceNotFoundError()
 
     def _require_owner(
         self,
@@ -72,10 +74,7 @@ class WorkspaceService:
         current_user: User,
     ) -> None:
         if workspace.owner_id != current_user.id:
-            raise AppException(
-                messages.WORKSPACE_OWNER_REQUIRED,
-                status.HTTP_403_FORBIDDEN,
-            )
+            raise WorkspaceOwnerRequiredError()
 
     async def create_workspace(
         self,
@@ -88,6 +87,15 @@ class WorkspaceService:
         )
 
         self.session.add(workspace)
+        await self.session.flush()
+
+        owner_member = WorkspaceMember(
+            workspace_id=workspace.id,
+            user_id=current_user.id,
+            role=WorkspaceRole.OWNER,
+        )
+
+        self.session.add(owner_member)
         await self.session.commit()
         await self.session.refresh(workspace)
 
@@ -95,9 +103,17 @@ class WorkspaceService:
 
     async def list_workspaces(
         self,
+        offset: int,
+        limit: int,
         current_user: User,
-    ) -> list[Workspace]:
-        return await self.workspace_repository.get_by_user(current_user.id)
+    ) -> tuple[list[Workspace], int]:
+        workspaces, total = await self.workspace_repository.get_by_user(
+            offset=offset,
+            limit=limit,
+            user_id=current_user.id,
+        )
+
+        return workspaces, total
 
     async def get_workspace(
         self,
@@ -141,10 +157,7 @@ class WorkspaceService:
             await self.session.commit()
         except IntegrityError:
             await self.session.rollback()
-            raise AppException(
-                messages.WORKSPACE_HAS_PROJECTS,
-                status.HTTP_409_CONFLICT,
-            )
+            raise WorkspaceHasProjectsError()
 
     async def add_member(
         self,
@@ -152,35 +165,23 @@ class WorkspaceService:
         data: WorkspaceMemberCreate,
         current_user: User,
     ) -> WorkspaceMember:
-        workspace = await self.workspace_repository.get_by_id_for_update(workspace_id)
+        workspace = await self.workspace_repository.get_by_id(workspace_id)
 
         if workspace is None:
-            raise AppException(
-                messages.WORKSPACE_NOT_FOUND,
-                status.HTTP_404_NOT_FOUND,
-            )
+            raise WorkspaceNotFoundError()
 
         self._require_owner(workspace, current_user)
 
         if data.user_id == workspace.owner_id:
-            raise AppException(
-                messages.WORKSPACE_OWNER_CANNOT_BE_INVITED,
-                status.HTTP_400_BAD_REQUEST,
-            )
+            raise WorkspaceOwnerCannotBeInvitedError()
 
         if data.role == WorkspaceRole.OWNER:
-            raise AppException(
-                messages.WORKSPACE_INVALID_ROLE,
-                status.HTTP_400_BAD_REQUEST,
-            )
+            raise WorkspaceInvalidRoleError()
 
         user = await self.user_repository.get_by_id(data.user_id)
 
         if user is None:
-            raise AppException(
-                messages.WORKSPACE_MEMBER_USER_NOT_FOUND,
-                status.HTTP_404_NOT_FOUND,
-            )
+            raise WorkspaceMemberUserNotFoundError()
 
         existing_member = await self.member_repository.get_member(
             workspace_id,
@@ -188,10 +189,7 @@ class WorkspaceService:
         )
 
         if existing_member is not None:
-            raise AppException(
-                messages.WORKSPACE_MEMBER_ALREADY_EXISTS,
-                status.HTTP_409_CONFLICT,
-            )
+            raise WorkspaceMemberAlreadyExistsError()
 
         member = WorkspaceMember(
             workspace_id=workspace_id,
@@ -205,10 +203,7 @@ class WorkspaceService:
             await self.session.commit()
         except IntegrityError:
             await self.session.rollback()
-            raise AppException(
-                messages.WORKSPACE_MEMBER_ALREADY_EXISTS,
-                status.HTTP_409_CONFLICT,
-            )
+            raise WorkspaceMemberAlreadyExistsError()
 
         await self.session.refresh(member)
         return member
@@ -230,21 +225,15 @@ class WorkspaceService:
         user_id: uuid.UUID,
         current_user: User,
     ) -> None:
-        workspace = await self.workspace_repository.get_by_id_for_update(workspace_id)
+        workspace = await self.workspace_repository.get_by_id(workspace_id)
 
         if workspace is None:
-            raise AppException(
-                messages.WORKSPACE_NOT_FOUND,
-                status.HTTP_404_NOT_FOUND,
-            )
+            raise WorkspaceNotFoundError()
 
         self._require_owner(workspace, current_user)
 
         if user_id == workspace.owner_id:
-            raise AppException(
-                messages.WORKSPACE_OWNER_CANNOT_BE_REMOVED,
-                status.HTTP_400_BAD_REQUEST,
-            )
+            raise WorkspaceOwnerCannotBeRemovedError()
 
         member = await self.member_repository.get_member(
             workspace_id,
@@ -252,10 +241,7 @@ class WorkspaceService:
         )
 
         if member is None:
-            raise AppException(
-                messages.WORKSPACE_MEMBER_NOT_FOUND,
-                status.HTTP_404_NOT_FOUND,
-            )
+            raise WorkspaceMemberNotFoundError()
 
         await self.member_repository.delete(member)
         await self.session.commit()
