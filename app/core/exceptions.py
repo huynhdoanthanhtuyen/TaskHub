@@ -203,3 +203,19 @@ class WorkspaceInvalidRoleError(AppException):
             message=messages.WORKSPACE_INVALID_ROLE,
             status_code=status.HTTP_400_BAD_REQUEST,
         )
+
+
+class ProjectNotFoundError(AppException):
+    def __init__(self):
+        super().__init__(
+            message=messages.PROJECT_NOT_FOUND,
+            status_code=status.HTTP_404_NOT_FOUND,
+        )
+
+
+class ProjectHasRelatedResourcesError(AppException):
+    def __init__(self):
+        super().__init__(
+            message=messages.PROJECT_HAS_RELATED_RESOURCES,
+            status_code=status.HTTP_409_CONFLICT,
+        )
