@@ -11,7 +11,12 @@ from app.api.v1.endpoints.projects import (
 from app.api.v1.endpoints.projects import (
     workspace_projects_router,
 )
-from app.api.v1.endpoints.tasks import router as tasks_router
+from app.api.v1.endpoints.tasks import (
+    project_tasks_router,
+)
+from app.api.v1.endpoints.tasks import (
+    router as tasks_router,
+)
 from app.api.v1.endpoints.users import router as users_router
 from app.api.v1.endpoints.workspaces import router as workspace_router
 from app.core.config import settings
@@ -67,11 +72,6 @@ async def root():
     return {"message": "Welcome to TaskHub API"}
 
 
-app.include_router(
-    tasks_router,
-    prefix="/api/v1/tasks",
-    tags=["Tasks"],
-)
 
 app.include_router(
     auth_router,
@@ -88,5 +88,14 @@ app.include_router(
 
 app.include_router(
     project_router,
+    prefix="/api/v1",
+)
+app.include_router(
+    project_tasks_router,
+    prefix="/api/v1",
+)
+
+app.include_router(
+    tasks_router,
     prefix="/api/v1",
 )
