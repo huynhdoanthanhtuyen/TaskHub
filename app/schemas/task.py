@@ -7,6 +7,7 @@ from pydantic import (
     ConfigDict,
     Field,
     field_validator,
+    model_validator,
 )
 
 from app.core.constants import (
@@ -22,8 +23,6 @@ class TaskBase(BaseModel):
 
 
 class TaskCreate(TaskBase):
-    project_id: UUID
-
     title: str = Field(
         min_length=TITLE_MIN_LENGTH,
         max_length=TITLE_MAX_LENGTH,
@@ -32,7 +31,6 @@ class TaskCreate(TaskBase):
         default=None,
         max_length=DESCRIPTION_MAX_LENGTH,
     )
-
     assignee_id: UUID | None = None
     priority: TaskPriority = TaskPriority.MEDIUM
     due_date: AwareDatetime | None = None
@@ -41,7 +39,7 @@ class TaskCreate(TaskBase):
     @classmethod
     def validate_due_date(cls, value: datetime | None):
         if value is not None and value <= datetime.now(UTC):
-                raise ValueError("Due date must be in the future")
+            raise ValueError("Due date must be in the future")
         return value
 
 
@@ -55,18 +53,17 @@ class TaskUpdate(TaskBase):
         default=None,
         max_length=DESCRIPTION_MAX_LENGTH,
     )
-
     assignee_id: UUID | None = None
     status: TaskStatus | None = None
     priority: TaskPriority | None = None
     due_date: AwareDatetime | None = None
 
-    @field_validator("title", "status", "priority")
-    @classmethod
-    def prevent_null(cls, value):
-        if value is None:
-            raise ValueError("This field cannot be null")
-        return value
+    @model_validator(mode="after")
+    def validate_non_nullable_fields(self):
+        for field in ("title", "status", "priority"):
+            if field in self.model_fields_set and getattr(self, field) is None:
+                raise ValueError(f"{field} cannot be null")
+        return self
 
     @field_validator("due_date")
     @classmethod
@@ -94,5 +91,5 @@ class TaskResponse(BaseModel):
 class TaskListResponse(BaseModel):
     items: list[TaskResponse]
     total: int
-    skip: int
+    offset: int
     limit: int

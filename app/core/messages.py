@@ -51,3 +51,11 @@ PROJECT_ARCHIVED = (
     "Project is archived. Restore it before making changes."
 )
 FIELD_CANNOT_BE_NULL = "{field} cannot be null"
+
+
+TASK_ASSIGNEE_NOT_MEMBER = (
+    "Assignee must be a member of the workspace."
+)
+TASK_PERMISSION_DENIED = (
+    "You do not have permission to manage tasks."
+)

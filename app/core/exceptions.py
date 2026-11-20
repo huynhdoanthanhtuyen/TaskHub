@@ -226,3 +226,11 @@ class ProjectArchivedError(AppException):
             status_code=409,
             detail=messages.PROJECT_ARCHIVED,
         )
+
+
+class TaskAssigneeNotMemberError(AppException):
+    def __init__(self):
+        super().__init__(
+            message=messages.TASK_ASSIGNEE_NOT_MEMBER,
+            status_code=status.HTTP_400_BAD_REQUEST,
+        )
