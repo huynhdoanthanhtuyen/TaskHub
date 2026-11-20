@@ -5,6 +5,19 @@ from fastapi import FastAPI, Request, status
 from fastapi.responses import JSONResponse
 
 from app.api.v1.endpoints.auth import router as auth_router
+from app.api.v1.endpoints.comments import (
+    router as comments_router,
+)
+from app.api.v1.endpoints.comments import (
+    task_comments_router,
+)
+from app.api.v1.endpoints.labels import (
+    project_labels_router,
+    task_labels_router,
+)
+from app.api.v1.endpoints.labels import (
+    router as labels_router,
+)
 from app.api.v1.endpoints.projects import (
     router as project_router,
 )
@@ -106,3 +119,11 @@ app.include_router(
     tasks_router,
     prefix="/api/v1",
 )
+
+
+app.include_router(project_labels_router, prefix="/api/v1")
+app.include_router(labels_router, prefix="/api/v1")
+app.include_router(task_labels_router, prefix="/api/v1")
+
+app.include_router(task_comments_router, prefix="/api/v1")
+app.include_router(comments_router, prefix="/api/v1")
