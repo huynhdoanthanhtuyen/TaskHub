@@ -55,3 +55,25 @@ TASK_ASSIGNEE_NOT_MEMBER = (
 TASK_PERMISSION_DENIED = (
     "You do not have permission to manage tasks."
 )
+
+
+# Label Management
+LABEL_NOT_FOUND = "Label not found."
+LABEL_ALREADY_ATTACHED = "Label is already attached to this task."
+LABEL_NOT_ATTACHED = "Label is not attached to this task."
+LABEL_PROJECT_MISMATCH = (
+    "Task and label must belong to the same project."
+)
+LABEL_ATTACH_CONFLICT = (
+    "Could not attach label due to a database constraint."
+)
+
+# Comment Management
+COMMENT_NOT_FOUND = "Comment not found."
+COMMENT_EDIT_FORBIDDEN = "You can only edit your own comments."
+COMMENT_DELETE_FORBIDDEN = (
+    "You cannot delete another user's comment."
+)
+
+# Shared authorization
+WORKSPACE_ACCESS_DENIED = "Permission denied."
