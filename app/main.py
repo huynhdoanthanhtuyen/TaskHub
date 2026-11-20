@@ -5,6 +5,12 @@ from fastapi import FastAPI, Request, status
 from fastapi.responses import JSONResponse
 
 from app.api.v1.endpoints.auth import router as auth_router
+from app.api.v1.endpoints.projects import (
+    router as project_router,
+)
+from app.api.v1.endpoints.projects import (
+    workspace_projects_router,
+)
 from app.api.v1.endpoints.tasks import router as tasks_router
 from app.api.v1.endpoints.users import router as users_router
 from app.api.v1.endpoints.workspaces import router as workspace_router
@@ -72,5 +78,22 @@ app.include_router(
     prefix="/api/v1",
 )
 
-app.include_router(workspace_router, prefix="/api/v1")
-app.include_router(users_router, prefix="/api/v1")
+app.include_router(
+    workspace_router,
+    prefix="/api/v1",
+)
+
+app.include_router(
+    users_router,
+    prefix="/api/v1",
+)
+
+app.include_router(
+    workspace_projects_router,
+    prefix="/api/v1",
+)
+
+app.include_router(
+    project_router,
+    prefix="/api/v1",
+)

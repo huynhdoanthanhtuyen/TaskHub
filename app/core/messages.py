@@ -41,3 +41,9 @@ WORKSPACE_OWNER_CANNOT_BE_INVITED = "Workspace owner already has access"
 WORKSPACE_MEMBER_USER_NOT_FOUND = "User to invite was not found"
 WORKSPACE_INVALID_ROLE = "Invalid workspace role"
 WORKSPACE_HAS_PROJECTS = "Cannot delete workspace while it has projects"
+
+# Project
+PROJECT_NOT_FOUND = "Project not found."
+PROJECT_HAS_RELATED_RESOURCES = (
+    "Cannot delete project because it has related resources."
+)
