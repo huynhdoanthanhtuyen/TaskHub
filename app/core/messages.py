@@ -47,3 +47,11 @@ PROJECT_NOT_FOUND = "Project not found."
 PROJECT_HAS_RELATED_RESOURCES = (
     "Cannot delete project because it has related resources."
 )
+
+
+TASK_ASSIGNEE_NOT_MEMBER = (
+    "Assignee must be a member of the workspace."
+)
+TASK_PERMISSION_DENIED = (
+    "You do not have permission to manage tasks."
+)

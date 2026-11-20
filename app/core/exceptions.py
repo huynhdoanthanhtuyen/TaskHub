@@ -219,3 +219,11 @@ class ProjectHasRelatedResourcesError(AppException):
             message=messages.PROJECT_HAS_RELATED_RESOURCES,
             status_code=status.HTTP_409_CONFLICT,
         )
+
+
+class TaskAssigneeNotMemberError(AppException):
+    def __init__(self):
+        super().__init__(
+            message=messages.TASK_ASSIGNEE_NOT_MEMBER,
+            status_code=status.HTTP_400_BAD_REQUEST,
+        )
