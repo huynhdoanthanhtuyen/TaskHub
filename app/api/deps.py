@@ -1,10 +1,17 @@
 from typing import Annotated
 
 import jwt
-from fastapi import Depends
+from fastapi import Depends, Query
 from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from app.core.constants import (
+    DEFAULT_OFFSET,
+    DEFAULT_PAGE_SIZE,
+    MAX_PAGE_SIZE,
+    MIN_OFFSET,
+    MIN_PAGE_SIZE,
+)
 from app.core.enums import UserRole
 from app.core.exceptions import (
     InactiveUserError,
@@ -50,3 +57,26 @@ def require_admin(current_user: CurrentUser) -> User:
 
 
 AdminUser = Annotated[User, Depends(require_admin)]
+
+
+class PaginationParams:
+    def __init__(
+        self,
+        offset: int = Query(
+            default=DEFAULT_OFFSET,
+            ge=MIN_OFFSET,
+        ),
+        limit: int = Query(
+            default=DEFAULT_PAGE_SIZE,
+            ge=MIN_PAGE_SIZE,
+            le=MAX_PAGE_SIZE,
+        ),
+    ):
+        self.offset = offset
+        self.limit = limit
+
+
+PaginationDep = Annotated[
+    PaginationParams,
+    Depends(PaginationParams),
+]
