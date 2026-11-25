@@ -2,7 +2,7 @@ import uuid
 from datetime import datetime
 from typing import TYPE_CHECKING
 
-from sqlalchemy import DateTime, Enum, ForeignKey, String, func
+from sqlalchemy import DateTime, Enum, ForeignKey, Index, String, func
 from sqlalchemy.dialects.postgresql import UUID
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
@@ -19,6 +19,15 @@ if TYPE_CHECKING:
 
 class Task(Base):
     __tablename__ = "tasks"
+
+    __table_args__ = (
+        Index(
+            "ix_tasks_project_id_created_at_id",
+            "project_id",
+            "created_at",
+            "id",
+        ),
+    )
 
     id: Mapped[uuid.UUID] = mapped_column(
         UUID(as_uuid=True),

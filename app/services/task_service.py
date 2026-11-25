@@ -1,13 +1,14 @@
-
 from uuid import UUID
 
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from app.core import messages
-from app.core.enums import TaskStatus, WorkspaceRole
+from app.core.constants import TASK_MANAGE_ROLES
+from app.core.enums import ProjectStatus, TaskPriority, TaskStatus
 from app.core.exceptions import (
-    PermissionDeniedError,
-    RelatedResourceNotFoundError,
+    ProjectArchivedError,
+    ProjectNotFoundError,
+    TaskAssigneeInactiveError,
+    TaskAssigneeNotFoundError,
     TaskAssigneeNotMemberError,
     TaskNotFoundError,
     WorkspaceNotFoundError,
@@ -21,6 +22,7 @@ from app.repositories.workspace_member_repository import (
     WorkspaceMemberRepository,
 )
 from app.schemas.task import TaskCreate, TaskUpdate
+from app.services.workspace_access import require_access
 
 
 class TaskService:
@@ -38,10 +40,7 @@ class TaskService:
         project = await self.session.get(Project, project_id)
 
         if project is None:
-            raise RelatedResourceNotFoundError(
-                "Project",
-                project_id,
-            )
+            raise ProjectNotFoundError()
 
         return project
 
@@ -55,78 +54,33 @@ class TaskService:
         )
 
         if workspace is None:
-            raise WorkspaceNotFoundError(workspace_id)
+            raise WorkspaceNotFoundError()
 
         return workspace
 
-    async def _get_task(self, task_id: UUID) -> Task:
-        task = await self.repository.get_by_id(task_id)
+    async def _get_task(
+        self,
+        task_id: UUID,
+    ) -> Task:
+        task = await self.repository.get_by_id_with_project_workspace(task_id)
 
         if task is None:
-            raise TaskNotFoundError(task_id)
+            raise TaskNotFoundError()
 
         return task
 
-    async def _get_user_role(
+    def _get_task_workspace(
         self,
-        workspace: Workspace,
-        current_user_id: UUID,
-    ) -> WorkspaceRole | None:
-        if workspace.owner_id == current_user_id:
-            return WorkspaceRole.OWNER
+        task: Task,
+    ) -> tuple[Project, Workspace]:
+        return task.project, task.project.workspace
 
-        member = await self.member_repository.get_member(
-            workspace.id,
-            current_user_id,
-        )
-
-        if member is None:
-            return None
-
-        return member.role
-
-    async def _require_access(
+    def _require_active_project(
         self,
-        workspace: Workspace,
-        current_user_id: UUID,
+        project: Project,
     ) -> None:
-        role = await self._get_user_role(
-            workspace,
-            current_user_id,
-        )
-
-        if role is None:
-            raise WorkspaceNotFoundError(workspace.id)
-
-        if role not in (
-            WorkspaceRole.OWNER,
-            WorkspaceRole.EDITOR,
-            WorkspaceRole.VIEWER,
-        ):
-            raise PermissionDeniedError(
-                messages.TASK_PERMISSION_DENIED
-            )
-
-    async def _require_manage_permission(
-        self,
-        workspace: Workspace,
-        current_user_id: UUID,
-    ) -> None:
-        role = await self._get_user_role(
-            workspace,
-            current_user_id,
-        )
-
-        if role is None:
-            raise WorkspaceNotFoundError(workspace.id)
-
-        if role not in (
-            WorkspaceRole.OWNER,
-            WorkspaceRole.EDITOR,
-        ):
-            raise PermissionDeniedError(
-                messages.TASK_PERMISSION_DENIED
-            )
+        if project.status == ProjectStatus.ARCHIVED:
+            raise ProjectArchivedError()
 
     async def _validate_assignee(
         self,
@@ -136,13 +90,16 @@ class TaskService:
         if assignee_id is None:
             return
 
-        assignee = await self.session.get(User, assignee_id)
+        assignee = await self.session.get(
+            User,
+            assignee_id,
+        )
 
         if assignee is None:
-            raise RelatedResourceNotFoundError(
-                "Assignee",
-                assignee_id,
-            )
+            raise TaskAssigneeNotFoundError()
+
+        if not assignee.is_active:
+            raise TaskAssigneeInactiveError()
 
         if workspace.owner_id == assignee_id:
             return
@@ -155,31 +112,25 @@ class TaskService:
         if member is None:
             raise TaskAssigneeNotMemberError()
 
-    async def _get_task_workspace(
-        self,
-        task: Task,
-    ) -> Workspace:
-        project = await self._get_project(task.project_id)
-
-        return await self._get_workspace(
-            project.workspace_id
-        )
 
     async def create_task(
         self,
         project_id: UUID,
         task_data: TaskCreate,
-        current_user_id: UUID,
+        current_user: User,
     ) -> Task:
         project = await self._get_project(project_id)
-        workspace = await self._get_workspace(
-            project.workspace_id
+        workspace = await self._get_workspace(project.workspace_id)
+
+        await require_access(
+            workspace,
+            current_user,
+            self.member_repository,
+            allowed_roles=TASK_MANAGE_ROLES,
+            not_found_exc=ProjectNotFoundError,
         )
 
-        await self._require_manage_permission(
-            workspace,
-            current_user_id,
-        )
+        self._require_active_project(project)
 
         await self._validate_assignee(
             workspace,
@@ -188,7 +139,7 @@ class TaskService:
 
         task = Task(
             project_id=project_id,
-            created_by=current_user_id,
+            created_by=current_user.id,
             assignee_id=task_data.assignee_id,
             title=task_data.title,
             description=task_data.description,
@@ -197,50 +148,58 @@ class TaskService:
             due_date=task_data.due_date,
         )
 
-        try:
-            await self.repository.create(task)
-            await self.session.commit()
-            await self.session.refresh(task)
-            return task
+        await self.repository.create(task)
+        await self.session.commit()
+        await self.session.refresh(task)
 
-        except Exception:
-            await self.session.rollback()
-            raise
+        return task
 
     async def get_tasks_by_project(
         self,
         project_id: UUID,
-        current_user_id: UUID,
-        offset: int = 0,
-        limit: int = 10,
+        current_user: User,
+        offset: int,
+        limit: int,
+        status: TaskStatus | None = None,
+        priority: TaskPriority | None = None,
+        assignee_id: UUID | None = None,
     ) -> tuple[list[Task], int]:
         project = await self._get_project(project_id)
+
         workspace = await self._get_workspace(
             project.workspace_id
         )
 
-        await self._require_access(
+        await require_access(
             workspace,
-            current_user_id,
+            current_user,
+            self.member_repository,
+            not_found_exc=ProjectNotFoundError,
         )
 
         return await self.repository.get_by_project(
             project_id=project_id,
             offset=offset,
             limit=limit,
+            status=status,
+            priority=priority,
+            assignee_id=assignee_id,
         )
 
     async def get_task(
         self,
         task_id: UUID,
-        current_user_id: UUID,
+        current_user: User,
     ) -> Task:
         task = await self._get_task(task_id)
-        workspace = await self._get_task_workspace(task)
 
-        await self._require_access(
+        _, workspace = self._get_task_workspace(task)
+
+        await require_access(
             workspace,
-            current_user_id,
+            current_user,
+            self.member_repository,
+            not_found_exc=TaskNotFoundError,
         )
 
         return task
@@ -249,19 +208,23 @@ class TaskService:
         self,
         task_id: UUID,
         task_data: TaskUpdate,
-        current_user_id: UUID,
+        current_user: User,
     ) -> Task:
         task = await self._get_task(task_id)
-        workspace = await self._get_task_workspace(task)
 
-        await self._require_manage_permission(
+        project, workspace = self._get_task_workspace(task)
+
+        await require_access(
             workspace,
-            current_user_id,
+            current_user,
+            self.member_repository,
+            allowed_roles=TASK_MANAGE_ROLES,
+            not_found_exc=TaskNotFoundError,
         )
 
-        update_data = task_data.model_dump(
-            exclude_unset=True
-        )
+        self._require_active_project(project)
+
+        update_data = task_data.model_dump(exclude_unset=True)
 
         if "assignee_id" in update_data:
             await self._validate_assignee(
@@ -269,35 +232,30 @@ class TaskService:
                 update_data["assignee_id"],
             )
 
-        for field, value in update_data.items():
-            setattr(task, field, value)
+        await self.repository.update(task, update_data)
 
-        try:
-            await self.session.commit()
-            await self.session.refresh(task)
-            return task
+        await self.session.commit()
+        await self.session.refresh(task)
 
-        except Exception:
-            await self.session.rollback()
-            raise
+        return task
 
     async def delete_task(
         self,
         task_id: UUID,
-        current_user_id: UUID,
+        current_user: User,
     ) -> None:
         task = await self._get_task(task_id)
-        workspace = await self._get_task_workspace(task)
+        project, workspace = self._get_task_workspace(task)
 
-        await self._require_manage_permission(
+        await require_access(
             workspace,
-            current_user_id,
+            current_user,
+            self.member_repository,
+            allowed_roles=TASK_MANAGE_ROLES,
+            not_found_exc=TaskNotFoundError,
         )
 
-        try:
-            await self.repository.delete(task)
-            await self.session.commit()
+        self._require_active_project(project)
 
-        except Exception:
-            await self.session.rollback()
-            raise
+        await self.repository.delete(task)
+        await self.session.commit()

@@ -10,6 +10,7 @@ from pydantic import (
     model_validator,
 )
 
+from app.core import messages
 from app.core.constants import (
     DESCRIPTION_MAX_LENGTH,
     TITLE_MAX_LENGTH,
@@ -39,7 +40,7 @@ class TaskCreate(TaskBase):
     @classmethod
     def validate_due_date(cls, value: datetime | None):
         if value is not None and value <= datetime.now(UTC):
-            raise ValueError("Due date must be in the future")
+            raise ValueError(messages.TASK_DUE_DATE_MUST_BE_IN_FUTURE)
         return value
 
 
@@ -62,14 +63,14 @@ class TaskUpdate(TaskBase):
     def validate_non_nullable_fields(self):
         for field in ("title", "status", "priority"):
             if field in self.model_fields_set and getattr(self, field) is None:
-                raise ValueError(f"{field} cannot be null")
+                raise ValueError(messages.FIELD_CANNOT_BE_NULL.format(field=field))
         return self
 
     @field_validator("due_date")
     @classmethod
     def validate_due_date(cls, value: datetime | None):
         if value is not None and value <= datetime.now(UTC):
-            raise ValueError("Due date must be in the future")
+            raise ValueError(messages.TASK_DUE_DATE_MUST_BE_IN_FUTURE)
         return value
 
 
