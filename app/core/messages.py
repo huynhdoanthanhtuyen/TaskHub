@@ -11,7 +11,7 @@ CANNOT_DELETE_SELF = "You cannot delete your own account"
 LAST_ACTIVE_ADMIN = "Cannot remove the last active admin"
 
 # Resources
-TASK_NOT_FOUND = "Task with id {task_id} not found"
+TASK_NOT_FOUND = "Task not found"
 USER_NOT_FOUND = "User with id {user_id} not found"
 
 # Database
@@ -56,6 +56,6 @@ FIELD_CANNOT_BE_NULL = "{field} cannot be null"
 TASK_ASSIGNEE_NOT_MEMBER = (
     "Assignee must be a member of the workspace."
 )
-TASK_PERMISSION_DENIED = (
-    "You do not have permission to manage tasks."
-)
+TASK_ASSIGNEE_NOT_FOUND = "Assignee not found"
+TASK_ASSIGNEE_INACTIVE = "Assignee is inactive"
+TASK_DUE_DATE_MUST_BE_IN_FUTURE = "Due date must be in the future"
