@@ -218,7 +218,8 @@ class ProjectHasRelatedResourcesError(AppException):
             message=messages.PROJECT_HAS_RELATED_RESOURCES,
             status_code=status.HTTP_409_CONFLICT,
         )
-        
+
+
 class ProjectArchivedError(AppException):
     def __init__(self):
         super().__init__(
@@ -234,43 +235,11 @@ class TaskAssigneeNotMemberError(AppException):
             status_code=status.HTTP_400_BAD_REQUEST,
         )
 
+
 class TaskAssigneeNotFoundError(AppException):
     def __init__(self):
         super().__init__(
             message=messages.TASK_ASSIGNEE_NOT_FOUND,
-            status_code=status.HTTP_400_BAD_REQUEST,
-                    )
-
-
-
-class LabelNotFoundError(AppException):
-    def __init__(self):
-        super().__init__(
-            message=messages.LABEL_NOT_FOUND,
-            status_code=status.HTTP_404_NOT_FOUND,
-        )
-
-
-class LabelAlreadyAttachedError(AppException):
-    def __init__(self):
-        super().__init__(
-            message=messages.LABEL_ALREADY_ATTACHED,
-            status_code=status.HTTP_409_CONFLICT,
-        )
-
-
-class LabelNotAttachedError(AppException):
-    def __init__(self):
-        super().__init__(
-            message=messages.LABEL_NOT_ATTACHED,
-            status_code=status.HTTP_404_NOT_FOUND,
-        )
-
-
-class LabelProjectMismatchError(AppException):
-    def __init__(self):
-        super().__init__(
-            message=messages.LABEL_PROJECT_MISMATCH,
             status_code=status.HTTP_400_BAD_REQUEST,
         )
 
@@ -281,14 +250,14 @@ class TaskAssigneeInactiveError(AppException):
             message=messages.TASK_ASSIGNEE_INACTIVE,
             status_code=status.HTTP_400_BAD_REQUEST,
         )
+
+
 class LabelAttachConflictError(AppException):
     def __init__(self):
         super().__init__(
             message=messages.LABEL_ATTACH_CONFLICT,
             status_code=status.HTTP_409_CONFLICT,
         )
-
-
 
 
 class CommentNotFoundError(AppException):
@@ -312,4 +281,47 @@ class CommentDeleteForbiddenError(AppException):
         super().__init__(
             message=messages.COMMENT_DELETE_FORBIDDEN,
             status_code=status.HTTP_403_FORBIDDEN,
+        )
+
+
+# Label exceptions
+
+
+class LabelNotFoundError(AppException):
+    def __init__(self):
+        super().__init__(
+            message=messages.LABEL_NOT_FOUND,
+            status_code=status.HTTP_404_NOT_FOUND,
+        )
+
+
+class LabelNameAlreadyExistsError(AppException):
+    def __init__(self):
+        super().__init__(
+            message=messages.LABEL_NAME_ALREADY_EXISTS,
+            status_code=status.HTTP_409_CONFLICT,
+        )
+
+
+class LabelProjectMismatchError(AppException):
+    def __init__(self):
+        super().__init__(
+            message=messages.LABEL_PROJECT_MISMATCH,
+            status_code=status.HTTP_400_BAD_REQUEST,
+        )
+
+
+class LabelAlreadyAttachedError(AppException):
+    def __init__(self):
+        super().__init__(
+            message=messages.LABEL_ALREADY_ATTACHED,
+            status_code=status.HTTP_409_CONFLICT,
+        )
+
+
+class LabelNotAttachedError(AppException):
+    def __init__(self):
+        super().__init__(
+            message=messages.LABEL_NOT_ATTACHED,
+            status_code=status.HTTP_404_NOT_FOUND,
         )

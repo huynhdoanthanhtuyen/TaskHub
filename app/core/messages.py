@@ -7,7 +7,7 @@ EMAIL_ALREADY_EXISTS = "Email already exists"
 # Authorization
 PERMISSION_DENIED = "Permission denied"
 ADMIN_REQUIRED = "Admin privileges required"
-CANNOT_DELETE_SELF = "You cannot delete your own account"
+CANNOT_DELETE_SELF = "Admin cannot delete their own account"
 LAST_ACTIVE_ADMIN = "Cannot remove the last active admin"
 
 # Resources
@@ -18,22 +18,27 @@ USER_NOT_FOUND = "User with id {user_id} not found"
 DATABASE_CONSTRAINT_VIOLATION = "Data violates a database constraint"
 RESOURCE_ALREADY_EXISTS = "Resource already exists"
 
-# USER VALIDATION
+# Common Validation
+FIELD_CANNOT_BE_NULL = "{field} cannot be null"
+
+# User Management
 FULL_NAME_CANNOT_BE_NULL = "full_name cannot be null"
 ROLE_CANNOT_BE_NULL = "role cannot be null"
 IS_ACTIVE_CANNOT_BE_NULL = "is_active cannot be null"
-FIELD_CANNOT_BE_NULL = "{field} cannot be null"
-CANNOT_DEMOTE_OR_DEACTIVATE = "You cannot demote or deactive your own account"
-LAST_ACTIVE_ADMIN = "Cannot remove the last active admin"
-CANNOT_DELETE_SELF = "Admin cannot delete their own account"
-USER_HAS_RELATED_RESOURCES = "Cannot delete user because related resources still exist."
-NEW_PASSWORD_SAME_AS_OLD = "New password must be different from the current password."
+CANNOT_DEMOTE_OR_DEACTIVATE = (
+    "You cannot demote or deactivate your own account"
+)
+USER_HAS_RELATED_RESOURCES = (
+    "Cannot delete user because related resources still exist."
+)
+NEW_PASSWORD_SAME_AS_OLD = (
+    "New password must be different from the current password."
+)
 
-# WORKSPACE
+# Workspace Management
 WORKSPACE_NOT_FOUND = "Workspace not found"
 WORKSPACE_ACCESS_DENIED = "You do not have access to this workspace"
 WORKSPACE_OWNER_REQUIRED = "Only the workspace owner can perform this action"
-
 WORKSPACE_MEMBER_NOT_FOUND = "Workspace member not found"
 WORKSPACE_MEMBER_ALREADY_EXISTS = "User is already a workspace member"
 WORKSPACE_OWNER_CANNOT_BE_REMOVED = "Workspace owner cannot be removed"
@@ -42,7 +47,7 @@ WORKSPACE_MEMBER_USER_NOT_FOUND = "User to invite was not found"
 WORKSPACE_INVALID_ROLE = "Invalid workspace role"
 WORKSPACE_HAS_PROJECTS = "Cannot delete workspace while it has projects"
 
-# Project
+# Project Management
 PROJECT_NOT_FOUND = "Project not found."
 PROJECT_HAS_RELATED_RESOURCES = (
     "Cannot delete project because it has related resources."
@@ -50,9 +55,8 @@ PROJECT_HAS_RELATED_RESOURCES = (
 PROJECT_ARCHIVED = (
     "Project is archived. Restore it before making changes."
 )
-FIELD_CANNOT_BE_NULL = "{field} cannot be null"
 
-
+# Task Management
 TASK_ASSIGNEE_NOT_MEMBER = (
     "Assignee must be a member of the workspace."
 )
@@ -63,16 +67,19 @@ TASK_PERMISSION_DENIED = (
     "You do not have permission to manage tasks."
 )
 
-
 # Label Management
-LABEL_NOT_FOUND = "Label not found."
-LABEL_ALREADY_ATTACHED = "Label is already attached to this task."
-LABEL_NOT_ATTACHED = "Label is not attached to this task."
-LABEL_PROJECT_MISMATCH = (
-    "Task and label must belong to the same project."
+LABEL_NOT_FOUND = "Label not found"
+LABEL_NAME_ALREADY_EXISTS = (
+    "A label with this name already exists in the project"
 )
-LABEL_ATTACH_CONFLICT = (
-    "Could not attach label due to a database constraint."
+LABEL_PROJECT_MISMATCH = (
+    "Label and task must belong to the same project"
+)
+LABEL_ALREADY_ATTACHED = (
+    "Label is already attached to the task"
+)
+LABEL_NOT_ATTACHED = (
+    "Label is not attached to the task"
 )
 
 # Comment Management
@@ -81,6 +88,3 @@ COMMENT_EDIT_FORBIDDEN = "You can only edit your own comments."
 COMMENT_DELETE_FORBIDDEN = (
     "You cannot delete another user's comment."
 )
-
-# Shared authorization
-WORKSPACE_ACCESS_DENIED = "Permission denied."
