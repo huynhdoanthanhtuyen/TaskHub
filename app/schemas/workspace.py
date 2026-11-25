@@ -1,29 +1,26 @@
 import uuid
 from datetime import datetime
 
-from pydantic import BaseModel, ConfigDict, Field
+from pydantic import ConfigDict, Field
 
 from app.core.constants import WORKSPACE_NAME_MAX_LENGTH, WORKSPACE_NAME_MIN_LENGTH
 from app.core.enums import WorkspaceRole
+from app.schemas.base import BaseSchema
 
 
-class WorkspaceBase(BaseModel):
-    model_config = ConfigDict(str_strip_whitespace=True)
-
-
-class WorkspaceCreate(WorkspaceBase):
+class WorkspaceCreate(BaseSchema):
     name: str = Field(
         min_length=WORKSPACE_NAME_MIN_LENGTH, max_length=WORKSPACE_NAME_MAX_LENGTH
     )
 
 
-class WorkspaceUpdate(WorkspaceBase):
+class WorkspaceUpdate(BaseSchema):
     name: str = Field(
         min_length=WORKSPACE_NAME_MIN_LENGTH, max_length=WORKSPACE_NAME_MAX_LENGTH
     )
 
 
-class WorkspaceResponse(WorkspaceBase):
+class WorkspaceResponse(BaseSchema):
     model_config = ConfigDict(from_attributes=True)
     id: uuid.UUID
     name: str
@@ -31,19 +28,19 @@ class WorkspaceResponse(WorkspaceBase):
     created_at: datetime
 
 
-class WorkspaceMemberCreate(WorkspaceBase):
+class WorkspaceMemberCreate(BaseSchema):
     user_id: uuid.UUID
     role: WorkspaceRole = WorkspaceRole.VIEWER
 
 
-class WorkspaceMemberResponse(WorkspaceBase):
+class WorkspaceMemberResponse(BaseSchema):
     model_config = ConfigDict(from_attributes=True)
     workspace_id: uuid.UUID
     user_id: uuid.UUID
     role: WorkspaceRole
 
 
-class WorkspaceListResponse(BaseModel):
+class WorkspaceListResponse(BaseSchema):
     items: list[WorkspaceResponse]
     total: int
     offset: int

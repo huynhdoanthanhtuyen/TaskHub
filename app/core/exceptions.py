@@ -219,3 +219,10 @@ class ProjectHasRelatedResourcesError(AppException):
             message=messages.PROJECT_HAS_RELATED_RESOURCES,
             status_code=status.HTTP_409_CONFLICT,
         )
+        
+class ProjectArchivedError(AppException):
+    def __init__(self):
+        super().__init__(
+            status_code=409,
+            detail=messages.PROJECT_ARCHIVED,
+        )

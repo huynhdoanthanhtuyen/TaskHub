@@ -19,13 +19,16 @@ from app.models.user import User
 from app.models.workspace import Workspace
 from app.models.workspace_member import WorkspaceMember
 from app.repositories.user_repository import UserRepository
-from app.repositories.workspace_member_repository import WorkspaceMemberRepository
+from app.repositories.workspace_member_repository import (
+    WorkspaceMemberRepository,
+)
 from app.repositories.workspace_repository import WorkspaceRepository
 from app.schemas.workspace import (
     WorkspaceCreate,
     WorkspaceMemberCreate,
     WorkspaceUpdate,
 )
+from app.services.workspace_access import require_access
 
 
 class WorkspaceService:
@@ -51,22 +54,6 @@ class WorkspaceService:
             raise WorkspaceNotFoundError()
 
         return workspace
-
-    async def _require_access(
-        self,
-        workspace: Workspace,
-        current_user: User,
-    ) -> None:
-        if workspace.owner_id == current_user.id:
-            return
-
-        member = await self.member_repository.get_member(
-            workspace.id,
-            current_user.id,
-        )
-
-        if member is None:
-            raise WorkspaceNotFoundError()
 
     def _require_owner(
         self,
@@ -122,7 +109,11 @@ class WorkspaceService:
     ) -> Workspace:
         workspace = await self._get_workspace(workspace_id)
 
-        await self._require_access(workspace, current_user)
+        await require_access(
+            workspace,
+            current_user,
+            self.member_repository,
+        )
 
         return workspace
 
@@ -206,6 +197,7 @@ class WorkspaceService:
             raise WorkspaceMemberAlreadyExistsError()
 
         await self.session.refresh(member)
+
         return member
 
     async def list_members(
@@ -215,7 +207,11 @@ class WorkspaceService:
     ) -> list[WorkspaceMember]:
         workspace = await self._get_workspace(workspace_id)
 
-        await self._require_access(workspace, current_user)
+        await require_access(
+            workspace,
+            current_user,
+            self.member_repository,
+        )
 
         return await self.member_repository.get_members(workspace_id)
 

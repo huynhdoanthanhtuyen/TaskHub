@@ -47,3 +47,7 @@ PROJECT_NOT_FOUND = "Project not found."
 PROJECT_HAS_RELATED_RESOURCES = (
     "Cannot delete project because it has related resources."
 )
+PROJECT_ARCHIVED = (
+    "Project is archived. Restore it before making changes."
+)
+FIELD_CANNOT_BE_NULL = "{field} cannot be null"

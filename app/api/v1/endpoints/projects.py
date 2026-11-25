@@ -1,8 +1,9 @@
 import uuid
+from typing import Annotated
 
-from fastapi import APIRouter, Query, Response, status
+from fastapi import APIRouter, Depends, Response, status
 
-from app.api.deps import CurrentUser, DbSession
+from app.api.deps import CurrentUser, DbSession, PaginationDep
 from app.repositories.project_repository import ProjectRepository
 from app.repositories.workspace_member_repository import (
     WorkspaceMemberRepository,
@@ -36,6 +37,12 @@ def get_project_service(session: DbSession) -> ProjectService:
     )
 
 
+ProjectServiceDep = Annotated[
+    ProjectService,
+    Depends(get_project_service),
+]
+
+
 @workspace_projects_router.post(
     "",
     response_model=ProjectResponse,
@@ -45,10 +52,8 @@ async def create_project(
     workspace_id: uuid.UUID,
     data: ProjectCreate,
     current_user: CurrentUser,
-    session: DbSession,
+    service: ProjectServiceDep,
 ):
-    service = get_project_service(session)
-
     return await service.create_project(
         workspace_id=workspace_id,
         data=data,
@@ -63,24 +68,21 @@ async def create_project(
 async def list_projects(
     workspace_id: uuid.UUID,
     current_user: CurrentUser,
-    session: DbSession,
-    offset: int = Query(default=0, ge=0),
-    limit: int = Query(default=10, ge=1, le=100),
+    service: ProjectServiceDep,
+    pagination: PaginationDep,
 ):
-    service = get_project_service(session)
-
     projects, total = await service.list_projects(
         workspace_id=workspace_id,
-        offset=offset,
-        limit=limit,
+        offset=pagination.offset,
+        limit=pagination.limit,
         current_user=current_user,
     )
 
     return ProjectListResponse(
         items=projects,
         total=total,
-        offset=offset,
-        limit=limit,
+        offset=pagination.offset,
+        limit=pagination.limit,
     )
 
 
@@ -91,10 +93,8 @@ async def list_projects(
 async def get_project(
     project_id: uuid.UUID,
     current_user: CurrentUser,
-    session: DbSession,
+    service: ProjectServiceDep,
 ):
-    service = get_project_service(session)
-
     return await service.get_project(
         project_id=project_id,
         current_user=current_user,
@@ -109,10 +109,8 @@ async def update_project(
     project_id: uuid.UUID,
     data: ProjectUpdate,
     current_user: CurrentUser,
-    session: DbSession,
+    service: ProjectServiceDep,
 ):
-    service = get_project_service(session)
-
     return await service.update_project(
         project_id=project_id,
         data=data,
@@ -127,10 +125,8 @@ async def update_project(
 async def delete_project(
     project_id: uuid.UUID,
     current_user: CurrentUser,
-    session: DbSession,
+    service: ProjectServiceDep,
 ):
-    service = get_project_service(session)
-
     await service.delete_project(
         project_id=project_id,
         current_user=current_user,
