@@ -1,4 +1,3 @@
-
 from uuid import UUID
 
 from sqlalchemy import func, select
@@ -15,8 +14,8 @@ class CommentRepository(BaseRepository[Comment]):
     async def get_by_task(
         self,
         task_id: UUID,
-        offset: int = 0,
-        limit: int = 10,
+        offset: int,
+        limit: int,
     ) -> tuple[list[Comment], int]:
         condition = Comment.task_id == task_id
 

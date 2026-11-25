@@ -4,51 +4,51 @@ from typing import Annotated
 from fastapi import APIRouter, Depends, status
 
 from app.api.deps import CurrentUser, DbSession, PaginationDep
-from app.models.project import Project
-from app.repositories.project_repository import ProjectRepository
+from app.models.workspace import Workspace
+from app.models.workspace_member import WorkspaceMember
+from app.repositories.user_repository import UserRepository
 from app.repositories.workspace_member_repository import (
     WorkspaceMemberRepository,
 )
 from app.repositories.workspace_repository import WorkspaceRepository
-from app.schemas.project import (
-    ProjectCreate,
-    ProjectListResponse,
-    ProjectResponse,
-    ProjectUpdate,
+from app.schemas.workspace import (
+    WorkspaceCreate,
+    WorkspaceListResponse,
+    WorkspaceMemberCreate,
+    WorkspaceMemberResponse,
+    WorkspaceResponse,
+    WorkspaceUpdate,
 )
-from app.services.project_service import ProjectService
-
-workspace_projects_router = APIRouter(
-    prefix="/workspaces/{workspace_id}/projects",
-    tags=["Projects"],
-)
+from app.services.workspace_service import WorkspaceService
 
 router = APIRouter(
-    prefix="/projects",
-    tags=["Projects"],
+    prefix="/workspaces",
+    tags=["Workspaces"],
 )
 
 
-def get_project_service(session: DbSession) -> ProjectService:
-    return ProjectService(
-        project_repository=ProjectRepository(session),
+def get_workspace_service(
+    session: DbSession,
+) -> WorkspaceService:
+    return WorkspaceService(
         workspace_repository=WorkspaceRepository(session),
         member_repository=WorkspaceMemberRepository(session),
+        user_repository=UserRepository(session),
         session=session,
     )
 
 
-ProjectServiceDep = Annotated[
-    ProjectService,
-    Depends(get_project_service),
+WorkspaceServiceDep = Annotated[
+    WorkspaceService,
+    Depends(get_workspace_service),
 ]
 
 
-@workspace_projects_router.post(
+@router.post(
     "",
-    response_model=ProjectResponse,
+    response_model=WorkspaceResponse,
     status_code=status.HTTP_201_CREATED,
-    summary="Create a project",
+    summary="Create a workspace",
     responses={
         status.HTTP_401_UNAUTHORIZED: {
             "description": "Authentication required",
@@ -56,52 +56,42 @@ ProjectServiceDep = Annotated[
         status.HTTP_403_FORBIDDEN: {
             "description": "Permission denied",
         },
-        status.HTTP_404_NOT_FOUND: {
-            "description": "Workspace not found",
-        },
     },
 )
-async def create_project(
-    workspace_id: uuid.UUID,
-    data: ProjectCreate,
+async def create_workspace(
+    data: WorkspaceCreate,
     current_user: CurrentUser,
-    service: ProjectServiceDep,
-) -> Project:
-    return await service.create_project(
-        workspace_id=workspace_id,
+    service: WorkspaceServiceDep,
+) -> Workspace:
+    return await service.create_workspace(
         data=data,
         current_user=current_user,
     )
 
 
-@workspace_projects_router.get(
+@router.get(
     "",
-    response_model=ProjectListResponse,
-    summary="List projects in a workspace",
+    response_model=WorkspaceListResponse,
+    summary="List user workspaces",
     responses={
         status.HTTP_401_UNAUTHORIZED: {
             "description": "Authentication required",
         },
-        status.HTTP_404_NOT_FOUND: {
-            "description": "Workspace not found",
-        },
     },
 )
-async def list_projects(
-    workspace_id: uuid.UUID,
+async def list_workspaces(
     current_user: CurrentUser,
-    service: ProjectServiceDep,
+    service: WorkspaceServiceDep,
     pagination: PaginationDep,
-) -> ProjectListResponse:
-    projects, total = await service.list_projects(
-        workspace_id=workspace_id,
+) -> WorkspaceListResponse:
+    workspaces, total = await service.list_workspaces(
         offset=pagination.offset,
         limit=pagination.limit,
         current_user=current_user,
     )
 
-    return ProjectListResponse(
-        items=projects,
+    return WorkspaceListResponse(
+        items=workspaces,
         total=total,
         offset=pagination.offset,
         limit=pagination.limit,
@@ -109,86 +99,175 @@ async def list_projects(
 
 
 @router.get(
-    "/{project_id}",
-    response_model=ProjectResponse,
-    summary="Get project details",
+    "/{workspace_id}",
+    response_model=WorkspaceResponse,
+    summary="Get workspace details",
     responses={
         status.HTTP_401_UNAUTHORIZED: {
             "description": "Authentication required",
         },
         status.HTTP_404_NOT_FOUND: {
-            "description": "Project not found",
+            "description": "Workspace not found",
         },
     },
 )
-async def get_project(
-    project_id: uuid.UUID,
+async def get_workspace(
+    workspace_id: uuid.UUID,
     current_user: CurrentUser,
-    service: ProjectServiceDep,
-) -> Project:
-    return await service.get_project(
-        project_id=project_id,
+    service: WorkspaceServiceDep,
+) -> Workspace:
+    return await service.get_workspace(
+        workspace_id=workspace_id,
         current_user=current_user,
     )
 
 
 @router.patch(
-    "/{project_id}",
-    response_model=ProjectResponse,
-    summary="Update a project",
+    "/{workspace_id}",
+    response_model=WorkspaceResponse,
+    summary="Update a workspace",
     responses={
         status.HTTP_401_UNAUTHORIZED: {
             "description": "Authentication required",
         },
         status.HTTP_403_FORBIDDEN: {
-            "description": "Permission denied",
+            "description": "Workspace owner required",
         },
         status.HTTP_404_NOT_FOUND: {
-            "description": "Project not found",
-        },
-        status.HTTP_409_CONFLICT: {
-            "description": "Project is archived",
+            "description": "Workspace not found",
         },
     },
 )
-async def update_project(
-    project_id: uuid.UUID,
-    data: ProjectUpdate,
+async def update_workspace(
+    workspace_id: uuid.UUID,
+    data: WorkspaceUpdate,
     current_user: CurrentUser,
-    service: ProjectServiceDep,
-) -> Project:
-    return await service.update_project(
-        project_id=project_id,
+    service: WorkspaceServiceDep,
+) -> Workspace:
+    return await service.update_workspace(
+        workspace_id=workspace_id,
         data=data,
         current_user=current_user,
     )
 
 
 @router.delete(
-    "/{project_id}",
+    "/{workspace_id}",
     status_code=status.HTTP_204_NO_CONTENT,
-    summary="Delete a project",
+    summary="Delete a workspace",
     responses={
         status.HTTP_401_UNAUTHORIZED: {
             "description": "Authentication required",
         },
         status.HTTP_403_FORBIDDEN: {
-            "description": "Permission denied",
+            "description": "Workspace owner required",
         },
         status.HTTP_404_NOT_FOUND: {
-            "description": "Project not found",
+            "description": "Workspace not found",
         },
         status.HTTP_409_CONFLICT: {
-            "description": "Project has related resources",
+            "description": "Workspace has related projects",
         },
     },
 )
-async def delete_project(
-    project_id: uuid.UUID,
+async def delete_workspace(
+    workspace_id: uuid.UUID,
     current_user: CurrentUser,
-    service: ProjectServiceDep,
+    service: WorkspaceServiceDep,
 ) -> None:
-    await service.delete_project(
-        project_id=project_id,
+    await service.delete_workspace(
+        workspace_id=workspace_id,
+        current_user=current_user,
+    )
+
+
+@router.post(
+    "/{workspace_id}/members",
+    response_model=WorkspaceMemberResponse,
+    status_code=status.HTTP_201_CREATED,
+    summary="Add a member to a workspace",
+    responses={
+        status.HTTP_400_BAD_REQUEST: {
+            "description": "Invalid role or cannot invite workspace owner",
+        },
+        status.HTTP_401_UNAUTHORIZED: {
+            "description": "Authentication required",
+        },
+        status.HTTP_403_FORBIDDEN: {
+            "description": "Workspace owner required",
+        },
+        status.HTTP_404_NOT_FOUND: {
+            "description": "Workspace or user not found",
+        },
+        status.HTTP_409_CONFLICT: {
+            "description": "Workspace member already exists",
+        },
+    },
+)
+async def add_member(
+    workspace_id: uuid.UUID,
+    data: WorkspaceMemberCreate,
+    current_user: CurrentUser,
+    service: WorkspaceServiceDep,
+) -> WorkspaceMember:
+    return await service.add_member(
+        workspace_id=workspace_id,
+        data=data,
+        current_user=current_user,
+    )
+
+
+@router.get(
+    "/{workspace_id}/members",
+    response_model=list[WorkspaceMemberResponse],
+    summary="List workspace members",
+    responses={
+        status.HTTP_401_UNAUTHORIZED: {
+            "description": "Authentication required",
+        },
+        status.HTTP_404_NOT_FOUND: {
+            "description": "Workspace not found",
+        },
+    },
+)
+async def list_members(
+    workspace_id: uuid.UUID,
+    current_user: CurrentUser,
+    service: WorkspaceServiceDep,
+) -> list[WorkspaceMember]:
+    return await service.list_members(
+        workspace_id=workspace_id,
+        current_user=current_user,
+    )
+
+
+@router.delete(
+    "/{workspace_id}/members/{user_id}",
+    status_code=status.HTTP_204_NO_CONTENT,
+    summary="Remove a member from a workspace",
+    responses={
+        status.HTTP_400_BAD_REQUEST: {
+            "description": "Workspace owner cannot be removed",
+        },
+        status.HTTP_401_UNAUTHORIZED: {
+            "description": "Authentication required",
+        },
+        status.HTTP_403_FORBIDDEN: {
+            "description": "Workspace owner required",
+        },
+        status.HTTP_404_NOT_FOUND: {
+            "description": "Workspace or member not found",
+        },
+    },
+)
+async def remove_member(
+    workspace_id: uuid.UUID,
+    user_id: uuid.UUID,
+    current_user: CurrentUser,
+    service: WorkspaceServiceDep,
+) -> None:
+    await service.remove_member(
+        workspace_id=workspace_id,
+        user_id=user_id,
         current_user=current_user,
     )

@@ -1,7 +1,7 @@
 import uuid
 from typing import TYPE_CHECKING
 
-from sqlalchemy import ForeignKey, String
+from sqlalchemy import ForeignKey, String, UniqueConstraint
 from sqlalchemy.dialects.postgresql import UUID
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
@@ -18,6 +18,13 @@ if TYPE_CHECKING:
 
 class Label(Base):
     __tablename__ = "labels"
+    __table_args__ = (
+        UniqueConstraint(
+            "project_id",
+            "name",
+            name="uq_labels_project_id_name",
+        ),
+    )
 
     id: Mapped[uuid.UUID] = mapped_column(
         UUID(as_uuid=True),

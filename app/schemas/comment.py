@@ -4,23 +4,20 @@ from uuid import UUID
 
 from pydantic import BaseModel, ConfigDict, Field
 
-from app.core.constants import COMMENT_MAX_LENGTH
+from app.core.constants import COMMENT_MAX_LENGTH, COMMENT_MIN_LENGTH
+from app.schemas.base import BaseSchema
 
 
-class CommentBase(BaseModel):
-    model_config = ConfigDict(str_strip_whitespace=True)
-
-
-class CommentCreate(CommentBase):
+class CommentCreate(BaseSchema):
     content: str = Field(
-        min_length=1,
+        min_length=COMMENT_MIN_LENGTH,
         max_length=COMMENT_MAX_LENGTH,
     )
 
 
-class CommentUpdate(CommentBase):
+class CommentUpdate(BaseSchema):
     content: str = Field(
-        min_length=1,
+        min_length=COMMENT_MIN_LENGTH,
         max_length=COMMENT_MAX_LENGTH,
     )
 
