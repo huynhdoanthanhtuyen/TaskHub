@@ -28,6 +28,12 @@ TITLE_MIN_LENGTH = 1
 TITLE_MAX_LENGTH = 200
 DESCRIPTION_MAX_LENGTH = 2000
 
+TASK_MANAGE_ROLES = frozenset(
+    {
+        WorkspaceRole.OWNER,
+        WorkspaceRole.EDITOR,
+    }
+)
 # LABEL
 
 LABEL_NAME_MAX_LENGTH = 100

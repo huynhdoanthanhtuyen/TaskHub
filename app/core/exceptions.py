@@ -19,10 +19,9 @@ class AppException(Exception):
 
 
 class TaskNotFoundError(AppException):
-    def __init__(self, task_id: UUID | str):
-        self.task_id = task_id
+    def __init__(self):
         super().__init__(
-            message=messages.TASK_NOT_FOUND.format(task_id=task_id),
+            message=messages.TASK_NOT_FOUND,
             status_code=status.HTTP_404_NOT_FOUND,
         )
 
@@ -223,8 +222,8 @@ class ProjectHasRelatedResourcesError(AppException):
 class ProjectArchivedError(AppException):
     def __init__(self):
         super().__init__(
-            status_code=409,
-            detail=messages.PROJECT_ARCHIVED,
+            message=messages.PROJECT_ARCHIVED,
+            status_code=status.HTTP_409_CONFLICT,
         )
 
 
@@ -232,5 +231,20 @@ class TaskAssigneeNotMemberError(AppException):
     def __init__(self):
         super().__init__(
             message=messages.TASK_ASSIGNEE_NOT_MEMBER,
+            status_code=status.HTTP_400_BAD_REQUEST,
+        )
+
+class TaskAssigneeNotFoundError(AppException):
+    def __init__(self):
+        super().__init__(
+            message=messages.TASK_ASSIGNEE_NOT_FOUND,
+            status_code=status.HTTP_400_BAD_REQUEST,
+        )
+
+
+class TaskAssigneeInactiveError(AppException):
+    def __init__(self):
+        super().__init__(
+            message=messages.TASK_ASSIGNEE_INACTIVE,
             status_code=status.HTTP_400_BAD_REQUEST,
         )
