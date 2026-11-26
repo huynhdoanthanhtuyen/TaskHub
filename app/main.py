@@ -37,6 +37,11 @@ from app.core.exceptions import (
     AppException,
     RelatedResourceNotFoundError,
 )
+from app.db.redis import (
+    check_redis_connection,
+    close_redis_connection,
+    create_redis_client,
+)
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
@@ -45,9 +50,26 @@ logger = logging.getLogger(__name__)
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     logger.info("TaskHub API is starting ...")
-    yield
-    logger.info("TaskHub API is shutting down...")
 
+    app.state.redis = None
+
+    try:
+        if settings.CACHE_ENABLED:
+            app.state.redis = create_redis_client()
+
+            await check_redis_connection(
+                app.state.redis,
+            )
+
+        yield
+
+    finally:
+        if app.state.redis is not None:
+            await close_redis_connection(
+                app.state.redis,
+            )
+
+        logger.info("TaskHub API is shutting down...")
 
 app = FastAPI(
     title=settings.APP_NAME,

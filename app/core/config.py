@@ -1,6 +1,11 @@
 from pydantic import Field
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
+from app.core.constants import (
+    DEFAULT_CACHE_TTL_SECONDS,
+    DEFAULT_REDIS_TIMEOUT_SECONDS,
+)
+
 
 class Settings(BaseSettings):
     APP_NAME: str = "TaskHub API"
@@ -10,14 +15,31 @@ class Settings(BaseSettings):
 
     SECRET_KEY: str = Field(min_length=32)
     JWT_ALGORITHM: str = "HS256"
+
     ACCESS_TOKEN_EXPIRE_MINUTES: int = Field(
         default=30,
         gt=0,
     )
+
     REFRESH_TOKEN_EXPIRE_DAYS: int = Field(
         default=7,
         gt=0,
     )
+
+
+    REDIS_URL: str = "redis://localhost:6379/0"
+    CACHE_ENABLED: bool = True
+
+    CACHE_TTL_SECONDS: int = Field(
+        default=DEFAULT_CACHE_TTL_SECONDS,
+        gt=0,
+    )
+
+    REDIS_TIMEOUT_SECONDS: float = Field(
+        default=DEFAULT_REDIS_TIMEOUT_SECONDS,
+        gt=0,
+    )
+
     model_config = SettingsConfigDict(
         env_file=".env",
         env_file_encoding="utf-8",

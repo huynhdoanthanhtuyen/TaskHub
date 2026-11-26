@@ -57,16 +57,26 @@ PASSWORD_MIN_LENGTH = 8
 PASSWORD_MAX_LENGTH = 128
 ADMIN_MANAGEMENT_LOCK_ID = 1
 
-LABEL_MANAGE_ROLES = frozenset({
-    WorkspaceRole.OWNER,
-    WorkspaceRole.EDITOR,
-})
+LABEL_MANAGE_ROLES = frozenset(
+    {
+        WorkspaceRole.OWNER,
+        WorkspaceRole.EDITOR,
+    }
+)
 
-COMMENT_MANAGE_ROLES = frozenset({
-    WorkspaceRole.OWNER,
-    WorkspaceRole.EDITOR,
-})
+COMMENT_MANAGE_ROLES = frozenset(
+    {
+        WorkspaceRole.OWNER,
+        WorkspaceRole.EDITOR,
+    }
+)
 
 # SEARCHING
 
 SEARCH_MAX_LENGTH = 200
+
+# CACHING
+
+DEFAULT_CACHE_TTL_SECONDS = 300
+DEFAULT_REDIS_TIMEOUT_SECONDS = 2.0
+CACHE_KEY_PREFIX = "taskhub:v1"

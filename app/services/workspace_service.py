@@ -3,6 +3,8 @@ import uuid
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from app.cache.keys import CacheKey
+from app.cache.service import CacheService
 from app.core.enums import WorkspaceRole
 from app.core.exceptions import (
     WorkspaceHasProjectsError,
@@ -25,7 +27,9 @@ from app.repositories.workspace_member_repository import (
 from app.repositories.workspace_repository import WorkspaceRepository
 from app.schemas.workspace import (
     WorkspaceCreate,
+    WorkspaceListResponse,
     WorkspaceMemberCreate,
+    WorkspaceResponse,
     WorkspaceUpdate,
 )
 from app.services.workspace_access import require_access
@@ -38,17 +42,21 @@ class WorkspaceService:
         member_repository: WorkspaceMemberRepository,
         user_repository: UserRepository,
         session: AsyncSession,
+        cache: CacheService,
     ):
         self.workspace_repository = workspace_repository
         self.member_repository = member_repository
         self.user_repository = user_repository
         self.session = session
+        self.cache = cache
 
     async def _get_workspace(
         self,
         workspace_id: uuid.UUID,
     ) -> Workspace:
-        workspace = await self.workspace_repository.get_by_id(workspace_id)
+        workspace = await self.workspace_repository.get_by_id(
+            workspace_id,
+        )
 
         if workspace is None:
             raise WorkspaceNotFoundError()
@@ -62,6 +70,18 @@ class WorkspaceService:
     ) -> None:
         if workspace.owner_id != current_user.id:
             raise WorkspaceOwnerRequiredError()
+
+    async def _invalidate_workspace_cache(
+        self,
+        user_id: uuid.UUID | None = None,
+    ) -> None:
+        pattern = CacheKey.pattern(
+            resource="workspaces",
+            scope=user_id if user_id is not None else "*",
+            operation="list",
+        )
+
+        await self.cache.invalidate(pattern)
 
     async def create_workspace(
         self,
@@ -83,7 +103,13 @@ class WorkspaceService:
         )
 
         self.session.add(owner_member)
+
         await self.session.commit()
+
+        await self._invalidate_workspace_cache(
+            current_user.id,
+        )
+
         await self.session.refresh(workspace)
 
         return workspace
@@ -95,14 +121,59 @@ class WorkspaceService:
         current_user: User,
         role: WorkspaceRole | None = None,
         search: str | None = None,
-    ) -> tuple[list[Workspace], int]:
-        return await self.workspace_repository.get_by_user(
+    ) -> WorkspaceListResponse:
+        cache_key = CacheKey.build(
+            resource="workspaces",
+            scope=current_user.id,
+            operation="list",
+            offset=offset,
+            limit=limit,
+            role=role,
+            search=search,
+        )
+
+        cached_response = await self.cache.get(
+            cache_key,
+            WorkspaceListResponse,
+        )
+
+        if cached_response is not None:
+            workspace_ids = [workspace.id for workspace in cached_response.items]
+
+            has_access = await self.workspace_repository.can_access_all(
+                user_id=current_user.id,
+                workspace_ids=workspace_ids,
+                role=role,
+            )
+
+            if has_access:
+                return cached_response
+
+            await self.cache.delete(cache_key)
+
+        workspaces, total = await self.workspace_repository.get_by_user(
             offset=offset,
             limit=limit,
             user_id=current_user.id,
             role=role,
             search=search,
         )
+
+        response = WorkspaceListResponse(
+            items=[
+                WorkspaceResponse.model_validate(workspace) for workspace in workspaces
+            ],
+            total=total,
+            offset=offset,
+            limit=limit,
+        )
+
+        await self.cache.set(
+            cache_key,
+            response,
+        )
+
+        return response
 
     async def get_workspace(
         self,
@@ -132,6 +203,9 @@ class WorkspaceService:
         workspace.name = data.name
 
         await self.session.commit()
+
+        await self._invalidate_workspace_cache()
+
         await self.session.refresh(workspace)
 
         return workspace
@@ -148,9 +222,12 @@ class WorkspaceService:
         try:
             await self.session.delete(workspace)
             await self.session.commit()
+
         except IntegrityError:
             await self.session.rollback()
             raise WorkspaceHasProjectsError()
+
+        await self._invalidate_workspace_cache()
 
     async def add_member(
         self,
@@ -158,7 +235,9 @@ class WorkspaceService:
         data: WorkspaceMemberCreate,
         current_user: User,
     ) -> WorkspaceMember:
-        workspace = await self.workspace_repository.get_by_id(workspace_id)
+        workspace = await self.workspace_repository.get_by_id(
+            workspace_id,
+        )
 
         if workspace is None:
             raise WorkspaceNotFoundError()
@@ -171,7 +250,9 @@ class WorkspaceService:
         if data.role == WorkspaceRole.OWNER:
             raise WorkspaceInvalidRoleError()
 
-        user = await self.user_repository.get_by_id(data.user_id)
+        user = await self.user_repository.get_by_id(
+            data.user_id,
+        )
 
         if user is None:
             raise WorkspaceMemberUserNotFoundError()
@@ -194,9 +275,14 @@ class WorkspaceService:
 
         try:
             await self.session.commit()
+
         except IntegrityError:
             await self.session.rollback()
             raise WorkspaceMemberAlreadyExistsError()
+
+        await self._invalidate_workspace_cache(
+            data.user_id,
+        )
 
         await self.session.refresh(member)
 
@@ -215,7 +301,9 @@ class WorkspaceService:
             self.member_repository,
         )
 
-        return await self.member_repository.get_members(workspace_id)
+        return await self.member_repository.get_members(
+            workspace_id,
+        )
 
     async def remove_member(
         self,
@@ -223,7 +311,9 @@ class WorkspaceService:
         user_id: uuid.UUID,
         current_user: User,
     ) -> None:
-        workspace = await self.workspace_repository.get_by_id(workspace_id)
+        workspace = await self.workspace_repository.get_by_id(
+            workspace_id,
+        )
 
         if workspace is None:
             raise WorkspaceNotFoundError()
@@ -242,4 +332,7 @@ class WorkspaceService:
             raise WorkspaceMemberNotFoundError()
 
         await self.member_repository.delete(member)
+
         await self.session.commit()
+
+        await self._invalidate_workspace_cache(user_id)
