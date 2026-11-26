@@ -4,6 +4,7 @@ from typing import Annotated
 from fastapi import APIRouter, Depends, status
 
 from app.api.deps import (
+    CacheDep,
     CurrentUser,
     DbSession,
     PaginationDep,
@@ -35,12 +36,14 @@ router = APIRouter(
 
 def get_workspace_service(
     session: DbSession,
+    cache: CacheDep,
 ) -> WorkspaceService:
     return WorkspaceService(
         workspace_repository=WorkspaceRepository(session),
         member_repository=WorkspaceMemberRepository(session),
         user_repository=UserRepository(session),
         session=session,
+        cache=cache,
     )
 
 
@@ -95,22 +98,12 @@ async def list_workspaces(
     searching: SearchDep,
     role: WorkspaceRole | None = None,
 ) -> WorkspaceListResponse:
-    workspaces, total = await service.list_workspaces(
+    return await service.list_workspaces(
         offset=pagination.offset,
         limit=pagination.limit,
         current_user=current_user,
         role=role,
         search=searching.search,
-    )
-
-    return WorkspaceListResponse(
-        items=[
-            WorkspaceResponse.model_validate(workspace)
-            for workspace in workspaces
-        ],
-        total=total,
-        offset=pagination.offset,
-        limit=pagination.limit,
     )
 
 

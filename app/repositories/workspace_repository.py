@@ -89,3 +89,63 @@ class WorkspaceRepository(BaseRepository[Workspace]):
         result = await self.session.execute(stmt)
 
         return list(result.scalars().all()), total
+
+    async def can_access_all(
+        self,
+        user_id: uuid.UUID,
+        workspace_ids: list[uuid.UUID],
+        role: WorkspaceRole | None = None,
+    ) -> bool:
+        if not workspace_ids:
+            return True
+
+        unique_ids = set(workspace_ids)
+
+        member_exists = (
+            select(WorkspaceMember.workspace_id)
+            .where(
+                WorkspaceMember.workspace_id == Workspace.id,
+                WorkspaceMember.user_id == user_id,
+            )
+            .exists()
+        )
+
+        conditions = [
+            Workspace.id.in_(unique_ids),
+            or_(
+                Workspace.owner_id == user_id,
+                member_exists,
+            ),
+        ]
+
+        if role == WorkspaceRole.OWNER:
+            conditions.append(
+                Workspace.owner_id == user_id
+            )
+
+        elif role is not None:
+            member_with_role_exists = (
+                select(WorkspaceMember.workspace_id)
+                .where(
+                    WorkspaceMember.workspace_id == Workspace.id,
+                    WorkspaceMember.user_id == user_id,
+                    WorkspaceMember.role == role,
+                )
+                .exists()
+            )
+
+            conditions.append(
+                Workspace.owner_id != user_id
+            )
+
+            conditions.append(member_with_role_exists)
+
+        stmt = (
+            select(func.count())
+            .select_from(Workspace)
+            .where(*conditions)
+        )
+
+        accessible_count = await self.session.scalar(stmt) or 0
+
+        return accessible_count == len(unique_ids)

@@ -4,6 +4,7 @@ from typing import Annotated
 from fastapi import APIRouter, Depends, status
 
 from app.api.deps import (
+    CacheDep,
     CurrentUser,
     DbSession,
     PaginationDep,
@@ -34,12 +35,16 @@ router = APIRouter(
 )
 
 
-def get_project_service(session: DbSession) -> ProjectService:
+def get_project_service(
+    session: DbSession,
+    cache: CacheDep,
+) -> ProjectService:
     return ProjectService(
         project_repository=ProjectRepository(session),
         workspace_repository=WorkspaceRepository(session),
         member_repository=WorkspaceMemberRepository(session),
         session=session,
+        cache=cache,
     )
 
 
@@ -55,9 +60,15 @@ ProjectServiceDep = Annotated[
     status_code=status.HTTP_201_CREATED,
     summary="Create a project",
     responses={
-        status.HTTP_401_UNAUTHORIZED: {"description": "Authentication required"},
-        status.HTTP_403_FORBIDDEN: {"description": "Permission denied"},
-        status.HTTP_404_NOT_FOUND: {"description": "Workspace not found"},
+        status.HTTP_401_UNAUTHORIZED: {
+            "description": "Authentication required",
+        },
+        status.HTTP_403_FORBIDDEN: {
+            "description": "Permission denied",
+        },
+        status.HTTP_404_NOT_FOUND: {
+            "description": "Workspace not found",
+        },
     },
 )
 async def create_project(
@@ -80,9 +91,15 @@ async def create_project(
     response_model=ProjectListResponse,
     summary="List, search and filter projects in a workspace",
     responses={
-        status.HTTP_401_UNAUTHORIZED: {"description": "Authentication required"},
-        status.HTTP_403_FORBIDDEN: {"description": "Inactive user"},
-        status.HTTP_404_NOT_FOUND: {"description": "Workspace not found"},
+        status.HTTP_401_UNAUTHORIZED: {
+            "description": "Authentication required",
+        },
+        status.HTTP_403_FORBIDDEN: {
+            "description": "Inactive user",
+        },
+        status.HTTP_404_NOT_FOUND: {
+            "description": "Workspace not found",
+        },
     },
 )
 async def list_projects(
@@ -93,7 +110,7 @@ async def list_projects(
     searching: SearchDep,
     status: ProjectStatus | None = None,
 ) -> ProjectListResponse:
-    projects, total = await service.list_projects(
+    return await service.list_projects(
         workspace_id=workspace_id,
         offset=pagination.offset,
         limit=pagination.limit,
@@ -102,22 +119,21 @@ async def list_projects(
         search=searching.search,
     )
 
-    return ProjectListResponse(
-        items=[ProjectResponse.model_validate(project) for project in projects],
-        total=total,
-        offset=pagination.offset,
-        limit=pagination.limit,
-    )
-
 
 @router.get(
     "/{project_id}",
     response_model=ProjectResponse,
     summary="Get project details",
     responses={
-        status.HTTP_401_UNAUTHORIZED: {"description": "Authentication required"},
-        status.HTTP_403_FORBIDDEN: {"description": "Inactive user"},
-        status.HTTP_404_NOT_FOUND: {"description": "Project not found"},
+        status.HTTP_401_UNAUTHORIZED: {
+            "description": "Authentication required",
+        },
+        status.HTTP_403_FORBIDDEN: {
+            "description": "Inactive user",
+        },
+        status.HTTP_404_NOT_FOUND: {
+            "description": "Project not found",
+        },
     },
 )
 async def get_project(
@@ -138,10 +154,18 @@ async def get_project(
     response_model=ProjectResponse,
     summary="Update a project",
     responses={
-        status.HTTP_401_UNAUTHORIZED: {"description": "Authentication required"},
-        status.HTTP_403_FORBIDDEN: {"description": "Permission denied"},
-        status.HTTP_404_NOT_FOUND: {"description": "Project not found"},
-        status.HTTP_409_CONFLICT: {"description": "Project is archived"},
+        status.HTTP_401_UNAUTHORIZED: {
+            "description": "Authentication required",
+        },
+        status.HTTP_403_FORBIDDEN: {
+            "description": "Permission denied",
+        },
+        status.HTTP_404_NOT_FOUND: {
+            "description": "Project not found",
+        },
+        status.HTTP_409_CONFLICT: {
+            "description": "Project is archived",
+        },
     },
 )
 async def update_project(
@@ -164,10 +188,18 @@ async def update_project(
     status_code=status.HTTP_204_NO_CONTENT,
     summary="Delete a project",
     responses={
-        status.HTTP_401_UNAUTHORIZED: {"description": "Authentication required"},
-        status.HTTP_403_FORBIDDEN: {"description": "Permission denied"},
-        status.HTTP_404_NOT_FOUND: {"description": "Project not found"},
-        status.HTTP_409_CONFLICT: {"description": "Project has related resources"},
+        status.HTTP_401_UNAUTHORIZED: {
+            "description": "Authentication required",
+        },
+        status.HTTP_403_FORBIDDEN: {
+            "description": "Permission denied",
+        },
+        status.HTTP_404_NOT_FOUND: {
+            "description": "Project not found",
+        },
+        status.HTTP_409_CONFLICT: {
+            "description": "Project has related resources",
+        },
     },
 )
 async def delete_project(

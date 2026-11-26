@@ -1,8 +1,9 @@
 import uuid
 
-from sqlalchemy import func, select
+from sqlalchemy import func, or_, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from app.core.enums import ProjectStatus
 from app.models.project import Project
 from app.repositories.base import BaseRepository
 
@@ -16,16 +17,43 @@ class ProjectRepository(BaseRepository[Project]):
         workspace_id: uuid.UUID,
         offset: int,
         limit: int,
+        status: ProjectStatus | None = None,
+        search: str | None = None,
     ) -> tuple[list[Project], int]:
-        condition = Project.workspace_id == workspace_id
+        conditions = [
+            Project.workspace_id == workspace_id,
+        ]
 
-        count_stmt = select(func.count()).select_from(Project).where(condition)
+        if status is not None:
+            conditions.append(
+                Project.status == status
+            )
+
+        if search:
+            conditions.append(
+                or_(
+                    Project.name.icontains(
+                        search,
+                        autoescape=True,
+                    ),
+                    Project.description.icontains(
+                        search,
+                        autoescape=True,
+                    ),
+                )
+            )
+
+        count_stmt = (
+            select(func.count())
+            .select_from(Project)
+            .where(*conditions)
+        )
 
         total = await self.session.scalar(count_stmt) or 0
 
         stmt = (
             select(Project)
-            .where(condition)
+            .where(*conditions)
             .order_by(
                 Project.created_at.desc(),
                 Project.id.desc(),
