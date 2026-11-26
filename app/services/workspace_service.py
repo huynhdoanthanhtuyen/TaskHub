@@ -93,14 +93,16 @@ class WorkspaceService:
         offset: int,
         limit: int,
         current_user: User,
+        role: WorkspaceRole | None = None,
+        search: str | None = None,
     ) -> tuple[list[Workspace], int]:
-        workspaces, total = await self.workspace_repository.get_by_user(
+        return await self.workspace_repository.get_by_user(
             offset=offset,
             limit=limit,
             user_id=current_user.id,
+            role=role,
+            search=search,
         )
-
-        return workspaces, total
 
     async def get_workspace(
         self,

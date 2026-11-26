@@ -91,6 +91,8 @@ class ProjectService:
         offset: int,
         limit: int,
         current_user: User,
+        status: ProjectStatus | None = None,
+        search: str | None = None,
     ) -> tuple[list[Project], int]:
         workspace = await self._get_workspace(workspace_id)
 
@@ -104,6 +106,8 @@ class ProjectService:
             workspace_id=workspace_id,
             offset=offset,
             limit=limit,
+            status=status,
+            search=search,
         )
 
     async def get_project(

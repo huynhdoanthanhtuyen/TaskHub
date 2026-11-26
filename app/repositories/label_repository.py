@@ -17,14 +17,37 @@ class LabelRepository(BaseRepository[Label]):
         task_id: UUID,
         offset: int,
         limit: int,
+        search: str | None = None,
+        color: str | None = None,
     ) -> tuple[list[Label], int]:
+        conditions = [
+            TaskLabel.task_id == task_id
+        ]
+
+        if search:
+            conditions.append(
+                Label.name.icontains(
+                    search,
+                    autoescape=True,
+                )
+            )
+
+        if color is not None:
+            conditions.append(
+                func.lower(Label.color) == color.lower()
+            )
+
         count_stmt = (
             select(func.count())
-            .select_from(TaskLabel)
-            .where(TaskLabel.task_id == task_id)
+            .select_from(Label)
+            .join(
+                TaskLabel,
+                TaskLabel.label_id == Label.id,
+            )
+            .where(*conditions)
         )
 
-        total = await self.session.scalar(count_stmt)
+        total = await self.session.scalar(count_stmt) or 0
 
         stmt = (
             select(Label)
@@ -32,36 +55,63 @@ class LabelRepository(BaseRepository[Label]):
                 TaskLabel,
                 TaskLabel.label_id == Label.id,
             )
-            .where(TaskLabel.task_id == task_id)
-            .order_by(Label.name.asc(), Label.id.asc())
+            .where(*conditions)
+            .order_by(
+                Label.name.asc(),
+                Label.id.asc(),
+            )
             .offset(offset)
             .limit(limit)
         )
 
         result = await self.session.execute(stmt)
 
-        return list(result.scalars().all()), total or 0
+        return list(result.scalars().all()), total
 
     async def get_by_project(
         self,
         project_id: UUID,
         offset: int,
         limit: int,
+        search: str | None = None,
+        color: str | None = None,
     ) -> tuple[list[Label], int]:
-        condition = Label.project_id == project_id
+        conditions = [
+            Label.project_id == project_id
+        ]
 
-        total = await self.session.scalar(
+        if search:
+            conditions.append(
+                Label.name.icontains(
+                    search,
+                    autoescape=True,
+                )
+            )
+
+        if color is not None:
+            conditions.append(
+                func.lower(Label.color) == color.lower()
+            )
+
+        count_stmt = (
             select(func.count())
             .select_from(Label)
-            .where(condition)
-        ) or 0
+            .where(*conditions)
+        )
 
-        result = await self.session.execute(
+        total = await self.session.scalar(count_stmt) or 0
+
+        stmt = (
             select(Label)
-            .where(condition)
-            .order_by(Label.name, Label.id)
+            .where(*conditions)
+            .order_by(
+                Label.name.asc(),
+                Label.id.asc(),
+            )
             .offset(offset)
             .limit(limit)
         )
+
+        result = await self.session.execute(stmt)
 
         return list(result.scalars().all()), total

@@ -1,9 +1,9 @@
 from typing import Annotated
 from uuid import UUID
 
-from fastapi import APIRouter, Depends, status
+from fastapi import APIRouter, Depends, Query, status
 
-from app.api.deps import CurrentUser, DbSession, PaginationDep
+from app.api.deps import CurrentUser, DbSession, PaginationDep, SearchDep
 from app.repositories.comment_repository import CommentRepository
 from app.repositories.task_repository import TaskRepository
 from app.repositories.workspace_member_repository import (
@@ -11,6 +11,7 @@ from app.repositories.workspace_member_repository import (
 )
 from app.schemas.comment import (
     CommentCreate,
+    CommentFilter,
     CommentListResponse,
     CommentResponse,
     CommentUpdate,
@@ -78,7 +79,7 @@ async def create_comment(
 @task_comments_router.get(
     "",
     response_model=CommentListResponse,
-    summary="List comments in a task",
+    summary="List, search and filter comments in a task",
     responses={
         status.HTTP_401_UNAUTHORIZED: {
             "description": "Authentication required"
@@ -96,12 +97,18 @@ async def list_comments(
     current_user: CurrentUser,
     service: CommentServiceDep,
     pagination: PaginationDep,
+    searching: SearchDep,
+    filters: Annotated[CommentFilter, Query()],
 ) -> CommentListResponse:
     comments, total = await service.list_comments(
         task_id=task_id,
         current_user=current_user,
         offset=pagination.offset,
         limit=pagination.limit,
+        search=searching.search,
+        author_id=filters.author_id,
+        created_from=filters.created_from,
+        created_to=filters.created_to,
     )
 
     return CommentListResponse(

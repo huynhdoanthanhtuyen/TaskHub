@@ -66,3 +66,7 @@ COMMENT_MANAGE_ROLES = frozenset({
     WorkspaceRole.OWNER,
     WorkspaceRole.EDITOR,
 })
+
+# SEARCHING
+
+SEARCH_MAX_LENGTH = 200

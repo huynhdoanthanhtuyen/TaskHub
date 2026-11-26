@@ -1,51 +1,78 @@
 from uuid import UUID
 
-from sqlalchemy import select
+from sqlalchemy import func, or_, select
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import joinedload
 
 from app.core.enums import TaskPriority, TaskStatus
-from app.core.exceptions import ProjectNotFoundError
 from app.models.project import Project
 from app.models.task import Task
-from app.models.user import User
 from app.repositories.base import BaseRepository
-from app.services.workspace_access import require_access
 
 
 class TaskRepository(BaseRepository[Task]):
     def __init__(self, session: AsyncSession):
         super().__init__(Task, session)
 
-    async def get_tasks_by_project(
+    async def get_by_project(
         self,
         project_id: UUID,
-        current_user: User,
         offset: int,
         limit: int,
         status: TaskStatus | None = None,
         priority: TaskPriority | None = None,
         assignee_id: UUID | None = None,
+        search: str | None = None,
     ) -> tuple[list[Task], int]:
-        project = await self._get_project(project_id)
+        conditions = [
+            Task.project_id == project_id,
+        ]
 
-        workspace = await self._get_workspace(project.workspace_id)
+        if status is not None:
+            conditions.append(Task.status == status)
 
-        await require_access(
-            workspace,
-            current_user,
-            self.member_repository,
-            not_found_exc=ProjectNotFoundError,
+        if priority is not None:
+            conditions.append(Task.priority == priority)
+
+        if assignee_id is not None:
+            conditions.append(Task.assignee_id == assignee_id)
+
+        if search:
+            conditions.append(
+                or_(
+                    Task.title.icontains(
+                        search,
+                        autoescape=True,
+                    ),
+                    Task.description.icontains(
+                        search,
+                        autoescape=True,
+                    ),
+                )
+            )
+
+        count_stmt = (
+            select(func.count())
+            .select_from(Task)
+            .where(*conditions)
         )
 
-        return await self.repository.get_by_project(
-            project_id=project_id,
-            offset=offset,
-            limit=limit,
-            status=status,
-            priority=priority,
-            assignee_id=assignee_id,
+        total = await self.session.scalar(count_stmt) or 0
+
+        stmt = (
+            select(Task)
+            .where(*conditions)
+            .order_by(
+                Task.created_at.desc(),
+                Task.id.desc(),
+            )
+            .offset(offset)
+            .limit(limit)
         )
+
+        result = await self.session.execute(stmt)
+
+        return list(result.scalars().all()), total
 
     async def get_by_id_with_project_workspace(
         self,
@@ -53,7 +80,10 @@ class TaskRepository(BaseRepository[Task]):
     ) -> Task | None:
         stmt = (
             select(Task)
-            .options(joinedload(Task.project).joinedload(Project.workspace))
+            .options(
+                joinedload(Task.project)
+                .joinedload(Project.workspace)
+            )
             .where(Task.id == task_id)
         )
 

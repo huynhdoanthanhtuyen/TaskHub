@@ -3,6 +3,7 @@ import uuid
 from sqlalchemy import func, or_, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from app.core.enums import WorkspaceRole
 from app.models.workspace import Workspace
 from app.models.workspace_member import WorkspaceMember
 from app.repositories.base import BaseRepository
@@ -17,6 +18,8 @@ class WorkspaceRepository(BaseRepository[Workspace]):
         offset: int,
         limit: int,
         user_id: uuid.UUID,
+        role: WorkspaceRole | None = None,
+        search: str | None = None,
     ) -> tuple[list[Workspace], int]:
         member_exists = (
             select(WorkspaceMember.workspace_id)
@@ -27,18 +30,54 @@ class WorkspaceRepository(BaseRepository[Workspace]):
             .exists()
         )
 
-        condition = or_(
-            Workspace.owner_id == user_id,
-            member_exists,
+        conditions = [
+            or_(
+                Workspace.owner_id == user_id,
+                member_exists,
+            )
+        ]
+
+        if role == WorkspaceRole.OWNER:
+            conditions.append(
+                Workspace.owner_id == user_id
+            )
+
+        elif role is not None:
+            member_with_role_exists = (
+                select(WorkspaceMember.workspace_id)
+                .where(
+                    WorkspaceMember.workspace_id == Workspace.id,
+                    WorkspaceMember.user_id == user_id,
+                    WorkspaceMember.role == role,
+                )
+                .exists()
+            )
+
+            conditions.append(
+                Workspace.owner_id != user_id
+            )
+
+            conditions.append(member_with_role_exists)
+
+        if search:
+            conditions.append(
+                Workspace.name.icontains(
+                    search,
+                    autoescape=True,
+                )
+            )
+
+        count_stmt = (
+            select(func.count())
+            .select_from(Workspace)
+            .where(*conditions)
         )
 
-        count_stmt = select(func.count()).select_from(Workspace).where(condition)
-
-        total = await self.session.scalar(count_stmt)
+        total = await self.session.scalar(count_stmt) or 0
 
         stmt = (
             select(Workspace)
-            .where(condition)
+            .where(*conditions)
             .order_by(
                 Workspace.created_at.desc(),
                 Workspace.id.desc(),
@@ -49,4 +88,4 @@ class WorkspaceRepository(BaseRepository[Workspace]):
 
         result = await self.session.execute(stmt)
 
-        return list(result.scalars().all()), total or 0
+        return list(result.scalars().all()), total

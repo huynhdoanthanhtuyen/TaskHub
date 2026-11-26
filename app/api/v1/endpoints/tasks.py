@@ -8,7 +8,12 @@ from fastapi import (
     status,
 )
 
-from app.api.deps import CurrentUser, DbSession, PaginationDep
+from app.api.deps import (
+    CurrentUser,
+    DbSession,
+    PaginationDep,
+    SearchDep,
+)
 from app.core.enums import TaskPriority, TaskStatus
 from app.repositories.task_repository import TaskRepository
 from app.repositories.workspace_member_repository import (
@@ -75,16 +80,23 @@ async def create_task(
 
     return TaskResponse.model_validate(task)
 
-
 @project_tasks_router.get(
     "",
     response_model=TaskListResponse,
-    summary="List tasks in a project",
+    summary="List, search and filter tasks in a project",
     responses={
-        status.HTTP_401_UNAUTHORIZED: {"description": "Authentication required"},
-        status.HTTP_403_FORBIDDEN: {"description": "Inactive user"},
-        status.HTTP_404_NOT_FOUND: {"description": "Project not found"},
-        status.HTTP_422_UNPROCESSABLE_ENTITY: {"description": "Validation error"},
+        status.HTTP_401_UNAUTHORIZED: {
+            "description": "Authentication required"
+        },
+        status.HTTP_403_FORBIDDEN: {
+            "description": "Inactive user"
+        },
+        status.HTTP_404_NOT_FOUND: {
+            "description": "Project not found"
+        },
+        status.HTTP_422_UNPROCESSABLE_ENTITY: {
+            "description": "Validation error"
+        },
     },
 )
 async def get_tasks(
@@ -92,6 +104,7 @@ async def get_tasks(
     current_user: CurrentUser,
     service: TaskServiceDep,
     pagination: PaginationDep,
+    searching: SearchDep,
     status: TaskStatus | None = None,
     priority: TaskPriority | None = None,
     assignee_id: UUID | None = None,
@@ -104,10 +117,14 @@ async def get_tasks(
         status=status,
         priority=priority,
         assignee_id=assignee_id,
+        search=searching.search,
     )
 
     return TaskListResponse(
-        items=[TaskResponse.model_validate(task) for task in tasks],
+        items=[
+            TaskResponse.model_validate(task)
+            for task in tasks
+        ],
         total=total,
         offset=pagination.offset,
         limit=pagination.limit,

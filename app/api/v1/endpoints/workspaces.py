@@ -3,7 +3,13 @@ from typing import Annotated
 
 from fastapi import APIRouter, Depends, status
 
-from app.api.deps import CurrentUser, DbSession, PaginationDep
+from app.api.deps import (
+    CurrentUser,
+    DbSession,
+    PaginationDep,
+    SearchDep,
+)
+from app.core.enums import WorkspaceRole
 from app.models.workspace import Workspace
 from app.models.workspace_member import WorkspaceMember
 from app.repositories.user_repository import UserRepository
@@ -72,10 +78,13 @@ async def create_workspace(
 @router.get(
     "",
     response_model=WorkspaceListResponse,
-    summary="List user workspaces",
+    summary="List, search and filter user workspaces",
     responses={
         status.HTTP_401_UNAUTHORIZED: {
             "description": "Authentication required",
+        },
+        status.HTTP_403_FORBIDDEN: {
+            "description": "Permission denied",
         },
     },
 )
@@ -83,15 +92,22 @@ async def list_workspaces(
     current_user: CurrentUser,
     service: WorkspaceServiceDep,
     pagination: PaginationDep,
+    searching: SearchDep,
+    role: WorkspaceRole | None = None,
 ) -> WorkspaceListResponse:
     workspaces, total = await service.list_workspaces(
         offset=pagination.offset,
         limit=pagination.limit,
         current_user=current_user,
+        role=role,
+        search=searching.search,
     )
 
     return WorkspaceListResponse(
-        items=workspaces,
+        items=[
+            WorkspaceResponse.model_validate(workspace)
+            for workspace in workspaces
+        ],
         total=total,
         offset=pagination.offset,
         limit=pagination.limit,
@@ -105,6 +121,9 @@ async def list_workspaces(
     responses={
         status.HTTP_401_UNAUTHORIZED: {
             "description": "Authentication required",
+        },
+        status.HTTP_403_FORBIDDEN: {
+            "description": "Permission denied",
         },
         status.HTTP_404_NOT_FOUND: {
             "description": "Workspace not found",
@@ -224,6 +243,9 @@ async def add_member(
     responses={
         status.HTTP_401_UNAUTHORIZED: {
             "description": "Authentication required",
+        },
+        status.HTTP_403_FORBIDDEN: {
+            "description": "Permission denied",
         },
         status.HTTP_404_NOT_FOUND: {
             "description": "Workspace not found",

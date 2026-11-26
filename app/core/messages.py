@@ -88,3 +88,4 @@ COMMENT_EDIT_FORBIDDEN = "You can only edit your own comments."
 COMMENT_DELETE_FORBIDDEN = (
     "You cannot delete another user's comment."
 )
+INVALID_DATE_RANGE = "created_from must be before or equal to created_to"
