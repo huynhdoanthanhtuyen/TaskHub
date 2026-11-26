@@ -1,10 +1,11 @@
 from typing import Annotated
 
 import jwt
-from fastapi import Depends, Query
+from fastapi import Depends, Query, Request
 from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from app.cache.service import CacheService
 from app.core.constants import (
     DEFAULT_OFFSET,
     DEFAULT_PAGE_SIZE,
@@ -97,4 +98,19 @@ class SearchParams:
 SearchDep = Annotated[
     SearchParams,
     Depends(SearchParams),
+]
+
+def get_cache_service(request: Request) -> CacheService:
+    client = getattr(
+        request.app.state,
+        "redis",
+        None,
+    )
+
+    return CacheService(client)
+
+
+CacheDep = Annotated[
+    CacheService,
+    Depends(get_cache_service),
 ]
