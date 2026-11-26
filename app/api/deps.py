@@ -11,6 +11,7 @@ from app.core.constants import (
     MAX_PAGE_SIZE,
     MIN_OFFSET,
     MIN_PAGE_SIZE,
+    SEARCH_MAX_LENGTH,
 )
 from app.core.enums import UserRole
 from app.core.exceptions import (
@@ -79,4 +80,21 @@ class PaginationParams:
 PaginationDep = Annotated[
     PaginationParams,
     Depends(PaginationParams),
+]
+
+class SearchParams:
+    def __init__(
+        self,
+        search: str | None = Query(
+            default=None,
+            max_length=SEARCH_MAX_LENGTH,
+            description="Keyword for case-insensitive searching",
+        ),
+    ):
+        self.search = search.strip() or None if search else None
+
+
+SearchDep = Annotated[
+    SearchParams,
+    Depends(SearchParams),
 ]

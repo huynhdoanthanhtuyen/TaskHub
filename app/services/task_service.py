@@ -163,6 +163,7 @@ class TaskService:
         status: TaskStatus | None = None,
         priority: TaskPriority | None = None,
         assignee_id: UUID | None = None,
+        search: str | None = None,
     ) -> tuple[list[Task], int]:
         project = await self._get_project(project_id)
 
@@ -184,6 +185,7 @@ class TaskService:
             status=status,
             priority=priority,
             assignee_id=assignee_id,
+            search=search,
         )
 
     async def get_task(

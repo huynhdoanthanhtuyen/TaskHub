@@ -105,3 +105,5 @@ class UserResponse(UserBase):
 class UserListResponse(BaseModel):
     items: list[UserResponse]
     total: int
+    offset: int
+    limit: int

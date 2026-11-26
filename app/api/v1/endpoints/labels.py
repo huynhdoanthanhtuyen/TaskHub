@@ -1,9 +1,10 @@
 from typing import Annotated
 from uuid import UUID
 
-from fastapi import APIRouter, Depends, status
+from fastapi import APIRouter, Depends, Query, status
 
-from app.api.deps import CurrentUser, DbSession, PaginationDep
+from app.api.deps import CurrentUser, DbSession, PaginationDep, SearchDep
+from app.core.constants import LABEL_COLOR_MAX_LENGTH, LABEL_COLOR_PATTERN
 from app.repositories.label_repository import LabelRepository
 from app.repositories.task_label_repository import TaskLabelRepository
 from app.repositories.task_repository import TaskRepository
@@ -88,7 +89,7 @@ async def create_label(
 @project_labels_router.get(
     "",
     response_model=LabelListResponse,
-    summary="List labels in a project",
+    summary="List, search and filter labels in a project",
     responses={
         status.HTTP_401_UNAUTHORIZED: {
             "description": "Authentication required"
@@ -106,12 +107,21 @@ async def list_labels(
     current_user: CurrentUser,
     service: LabelServiceDep,
     pagination: PaginationDep,
+    searching: SearchDep,
+    color: str | None = Query(
+        default=None,
+        max_length=LABEL_COLOR_MAX_LENGTH,
+        pattern=LABEL_COLOR_PATTERN,
+        description="Filter labels by HEX color",
+    ),
 ) -> LabelListResponse:
     labels, total = await service.list_labels(
         project_id=project_id,
         current_user=current_user,
         offset=pagination.offset,
         limit=pagination.limit,
+        search=searching.search,
+        color=color,
     )
 
     return LabelListResponse(
@@ -123,7 +133,6 @@ async def list_labels(
         offset=pagination.offset,
         limit=pagination.limit,
     )
-
 
 @router.patch(
     "/{label_id}",
@@ -202,7 +211,7 @@ async def delete_label(
 @task_labels_router.get(
     "",
     response_model=LabelListResponse,
-    summary="List labels attached to a task",
+    summary="List, search and filter labels attached to a task",
     responses={
         status.HTTP_401_UNAUTHORIZED: {
             "description": "Authentication required"
@@ -220,12 +229,21 @@ async def list_task_labels(
     current_user: CurrentUser,
     service: LabelServiceDep,
     pagination: PaginationDep,
+    searching: SearchDep,
+    color: str | None = Query(
+        default=None,
+        max_length=LABEL_COLOR_MAX_LENGTH,
+        pattern=LABEL_COLOR_PATTERN,
+        description="Filter labels by HEX color",
+    ),
 ) -> LabelListResponse:
     labels, total = await service.list_labels_by_task(
         task_id=task_id,
         current_user=current_user,
         offset=pagination.offset,
         limit=pagination.limit,
+        search=searching.search,
+        color=color,
     )
 
     return LabelListResponse(
@@ -237,7 +255,6 @@ async def list_task_labels(
         offset=pagination.offset,
         limit=pagination.limit,
     )
-
 
 
 

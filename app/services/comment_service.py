@@ -1,3 +1,4 @@
+from datetime import datetime
 from uuid import UUID
 
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -144,6 +145,10 @@ class CommentService:
         current_user: User,
         offset: int,
         limit: int,
+        search: str | None = None,
+        author_id: UUID | None = None,
+        created_from: datetime | None = None,
+        created_to: datetime | None = None,
     ) -> tuple[list[Comment], int]:
         task = await self._get_task(task_id)
 
@@ -157,9 +162,13 @@ class CommentService:
         )
 
         return await self.repository.get_by_task(
-            task_id,
-            offset,
-            limit,
+            task_id=task_id,
+            offset=offset,
+            limit=limit,
+            search=search,
+            author_id=author_id,
+            created_from=created_from,
+            created_to=created_to,
         )
 
     async def update_comment(

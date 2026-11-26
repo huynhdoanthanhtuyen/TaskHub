@@ -169,6 +169,8 @@ class LabelService:
         current_user: User,
         offset: int,
         limit: int,
+        search: str | None = None,
+        color: str | None = None,
     ) -> tuple[list[Label], int]:
         workspace = await self._get_project_workspace(
             project_id
@@ -182,9 +184,11 @@ class LabelService:
         )
 
         return await self.repository.get_by_project(
-            project_id,
-            offset,
-            limit,
+            project_id=project_id,
+            offset=offset,
+            limit=limit,
+            search=search,
+            color=color,
         )
 
     async def list_labels_by_task(
@@ -193,6 +197,8 @@ class LabelService:
         current_user: User,
         offset: int,
         limit: int,
+        search: str | None = None,
+        color: str | None = None,
     ) -> tuple[list[Label], int]:
         task = await self._get_task(task_id)
 
@@ -211,6 +217,8 @@ class LabelService:
             task_id=task_id,
             offset=offset,
             limit=limit,
+            search=search,
+            color=color,
         )
 
     async def update_label(

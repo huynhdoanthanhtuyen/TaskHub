@@ -129,14 +129,18 @@ class UserService:
         self,
         offset: int,
         limit: int,
-    ) -> dict:
-        items = await self.repository.get_paginated(offset, limit)
-        total = await self.repository.count_users()
-
-        return {
-            "items": items,
-            "total": total,
-        }
+        role: UserRole | None = None,
+        is_active: bool | None = None,
+        search: str | None = None,
+    ) -> tuple[list[User], int]:
+        return await self.repository.get_paginated(
+            offset=offset,
+            limit=limit,
+            role=role,
+            is_active=is_active,
+            search=search,
+        )
+    
     async def admin_update_user(
         self,
         user_id: UUID,
