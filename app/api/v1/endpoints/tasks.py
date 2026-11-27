@@ -80,23 +80,16 @@ async def create_task(
 
     return TaskResponse.model_validate(task)
 
+
 @project_tasks_router.get(
     "",
     response_model=TaskListResponse,
     summary="List, search and filter tasks in a project",
     responses={
-        status.HTTP_401_UNAUTHORIZED: {
-            "description": "Authentication required"
-        },
-        status.HTTP_403_FORBIDDEN: {
-            "description": "Inactive user"
-        },
-        status.HTTP_404_NOT_FOUND: {
-            "description": "Project not found"
-        },
-        status.HTTP_422_UNPROCESSABLE_ENTITY: {
-            "description": "Validation error"
-        },
+        status.HTTP_401_UNAUTHORIZED: {"description": "Authentication required"},
+        status.HTTP_403_FORBIDDEN: {"description": "Inactive user"},
+        status.HTTP_404_NOT_FOUND: {"description": "Project not found"},
+        status.HTTP_422_UNPROCESSABLE_ENTITY: {"description": "Validation error"},
     },
 )
 async def get_tasks(
@@ -121,10 +114,7 @@ async def get_tasks(
     )
 
     return TaskListResponse(
-        items=[
-            TaskResponse.model_validate(task)
-            for task in tasks
-        ],
+        items=[TaskResponse.model_validate(task) for task in tasks],
         total=total,
         offset=pagination.offset,
         limit=pagination.limit,

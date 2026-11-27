@@ -30,11 +30,7 @@ class ProjectRepository(BaseRepository[Project]):
                 Project.name.icontains(search, autoescape=True)
             )
 
-        count_stmt = (
-            select(func.count())
-            .select_from(Project)
-            .where(*conditions)
-        )
+        count_stmt = select(func.count()).select_from(Project).where(*conditions)
 
         total = await self.session.scalar(count_stmt) or 0
 

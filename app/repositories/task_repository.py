@@ -51,11 +51,7 @@ class TaskRepository(BaseRepository[Task]):
                 )
             )
 
-        count_stmt = (
-            select(func.count())
-            .select_from(Task)
-            .where(*conditions)
-        )
+        count_stmt = select(func.count()).select_from(Task).where(*conditions)
 
         total = await self.session.scalar(count_stmt) or 0
 
@@ -80,10 +76,7 @@ class TaskRepository(BaseRepository[Task]):
     ) -> Task | None:
         stmt = (
             select(Task)
-            .options(
-                joinedload(Task.project)
-                .joinedload(Project.workspace)
-            )
+            .options(joinedload(Task.project).joinedload(Project.workspace))
             .where(Task.id == task_id)
         )
 

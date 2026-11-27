@@ -120,9 +120,7 @@ class LabelService:
     ) -> Workspace:
         project = await self._get_project(project_id)
 
-        return await self._get_workspace(
-            project.workspace_id
-        )
+        return await self._get_workspace(project.workspace_id)
 
     async def create_label(
         self,
@@ -130,9 +128,7 @@ class LabelService:
         data: LabelCreate,
         current_user: User,
     ) -> Label:
-        workspace = await self._get_project_workspace(
-            project_id
-        )
+        workspace = await self._get_project_workspace(project_id)
 
         await require_access(
             workspace,
@@ -172,9 +168,7 @@ class LabelService:
         search: str | None = None,
         color: str | None = None,
     ) -> tuple[list[Label], int]:
-        workspace = await self._get_project_workspace(
-            project_id
-        )
+        workspace = await self._get_project_workspace(project_id)
 
         await require_access(
             workspace,
@@ -202,9 +196,7 @@ class LabelService:
     ) -> tuple[list[Label], int]:
         task = await self._get_task(task_id)
 
-        workspace = await self._get_project_workspace(
-            task.project_id
-        )
+        workspace = await self._get_project_workspace(task.project_id)
 
         await require_access(
             workspace,
@@ -229,9 +221,7 @@ class LabelService:
     ) -> Label:
         label = await self._get_label(label_id)
 
-        workspace = await self._get_project_workspace(
-            label.project_id
-        )
+        workspace = await self._get_project_workspace(label.project_id)
 
         await require_access(
             workspace,
@@ -241,9 +231,7 @@ class LabelService:
             not_found_exc=LabelNotFoundError,
         )
 
-        update_data = data.model_dump(
-            exclude_unset=True
-        )
+        update_data = data.model_dump(exclude_unset=True)
 
         for field, value in update_data.items():
             setattr(label, field, value)
@@ -270,9 +258,7 @@ class LabelService:
     ) -> None:
         label = await self._get_label(label_id)
 
-        workspace = await self._get_project_workspace(
-            label.project_id
-        )
+        workspace = await self._get_project_workspace(label.project_id)
 
         await require_access(
             workspace,
@@ -298,9 +284,7 @@ class LabelService:
     ) -> None:
         task = await self._get_task(task_id)
 
-        workspace = await self._get_project_workspace(
-            task.project_id
-        )
+        workspace = await self._get_project_workspace(task.project_id)
 
         await require_access(
             workspace,
@@ -357,9 +341,7 @@ class LabelService:
     ) -> None:
         task = await self._get_task(task_id)
 
-        workspace = await self._get_project_workspace(
-            task.project_id
-        )
+        workspace = await self._get_project_workspace(task.project_id)
 
         await require_access(
             workspace,
@@ -378,9 +360,7 @@ class LabelService:
             raise LabelNotAttachedError()
 
         try:
-            await self.task_label_repository.delete(
-                task_label
-            )
+            await self.task_label_repository.delete(task_label)
 
             await self.session.commit()
 

@@ -1,4 +1,3 @@
-
 import asyncio
 from datetime import UTC, datetime, timedelta
 from uuid import UUID, uuid4
@@ -45,9 +44,7 @@ async def seed_data() -> None:
     async with AsyncSessionLocal() as session, session.begin():
         # Check whether seed data already exists
         existing = await session.scalar(
-            select(User.id).where(
-                User.id == UUID(IDS["admin"])
-            )
+            select(User.id).where(User.id == UUID(IDS["admin"]))
         )
 
         if existing is not None:

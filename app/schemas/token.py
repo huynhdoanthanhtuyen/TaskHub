@@ -16,6 +16,7 @@ class TokenResponse(BaseModel):
 class RefreshTokenRequest(BaseModel):
     refresh_token: str
 
+
 class TokenPayload(BaseModel):
     sub: UUID
     type: TokenType
