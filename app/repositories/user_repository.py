@@ -18,9 +18,7 @@ class UserRepository(BaseRepository[User]):
         self,
         email: str,
     ) -> User | None:
-        result = await self.session.execute(
-            select(User).where(User.email == email)
-        )
+        result = await self.session.execute(select(User).where(User.email == email))
 
         return result.scalar_one_or_none()
 
@@ -38,9 +36,7 @@ class UserRepository(BaseRepository[User]):
             conditions.append(User.role == role)
 
         if is_active is not None:
-            conditions.append(
-                User.is_active.is_(is_active)
-            )
+            conditions.append(User.is_active.is_(is_active))
 
         if search:
             conditions.append(
@@ -56,11 +52,7 @@ class UserRepository(BaseRepository[User]):
                 )
             )
 
-        count_stmt = (
-            select(func.count())
-            .select_from(User)
-            .where(*conditions)
-        )
+        count_stmt = select(func.count()).select_from(User).where(*conditions)
 
         total = await self.session.scalar(count_stmt) or 0
 
@@ -83,17 +75,12 @@ class UserRepository(BaseRepository[User]):
     async def lock_admin_management(self) -> None:
         result = await self.session.execute(
             select(AdminManagementLock)
-            .where(
-                AdminManagementLock.id
-                == ADMIN_MANAGEMENT_LOCK_ID
-            )
+            .where(AdminManagementLock.id == ADMIN_MANAGEMENT_LOCK_ID)
             .with_for_update()
         )
 
         if result.scalar_one_or_none() is None:
-            raise RuntimeError(
-                "Admin management lock record not found"
-            )
+            raise RuntimeError("Admin management lock record not found")
 
     async def get_by_id_fresh(
         self,

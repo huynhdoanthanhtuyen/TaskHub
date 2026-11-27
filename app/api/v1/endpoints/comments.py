@@ -50,15 +50,9 @@ CommentServiceDep = Annotated[
     status_code=status.HTTP_201_CREATED,
     summary="Create a comment",
     responses={
-        status.HTTP_401_UNAUTHORIZED: {
-            "description": "Authentication required"
-        },
-        status.HTTP_403_FORBIDDEN: {
-            "description": "Permission denied"
-        },
-        status.HTTP_404_NOT_FOUND: {
-            "description": "Task not found"
-        },
+        status.HTTP_401_UNAUTHORIZED: {"description": "Authentication required"},
+        status.HTTP_403_FORBIDDEN: {"description": "Permission denied"},
+        status.HTTP_404_NOT_FOUND: {"description": "Task not found"},
     },
 )
 async def create_comment(
@@ -81,15 +75,9 @@ async def create_comment(
     response_model=CommentListResponse,
     summary="List, search and filter comments in a task",
     responses={
-        status.HTTP_401_UNAUTHORIZED: {
-            "description": "Authentication required"
-        },
-        status.HTTP_403_FORBIDDEN: {
-            "description": "Permission denied"
-        },
-        status.HTTP_404_NOT_FOUND: {
-            "description": "Task not found"
-        },
+        status.HTTP_401_UNAUTHORIZED: {"description": "Authentication required"},
+        status.HTTP_403_FORBIDDEN: {"description": "Permission denied"},
+        status.HTTP_404_NOT_FOUND: {"description": "Task not found"},
     },
 )
 async def list_comments(
@@ -112,10 +100,7 @@ async def list_comments(
     )
 
     return CommentListResponse(
-        items=[
-            CommentResponse.model_validate(comment)
-            for comment in comments
-        ],
+        items=[CommentResponse.model_validate(comment) for comment in comments],
         total=total,
         offset=pagination.offset,
         limit=pagination.limit,
@@ -127,15 +112,11 @@ async def list_comments(
     response_model=CommentResponse,
     summary="Update a comment",
     responses={
-        status.HTTP_401_UNAUTHORIZED: {
-            "description": "Authentication required"
-        },
+        status.HTTP_401_UNAUTHORIZED: {"description": "Authentication required"},
         status.HTTP_403_FORBIDDEN: {
             "description": "Permission denied or not the comment author"
         },
-        status.HTTP_404_NOT_FOUND: {
-            "description": "Comment not found"
-        },
+        status.HTTP_404_NOT_FOUND: {"description": "Comment not found"},
     },
 )
 async def update_comment(
@@ -158,15 +139,9 @@ async def update_comment(
     status_code=status.HTTP_204_NO_CONTENT,
     summary="Delete a comment",
     responses={
-        status.HTTP_401_UNAUTHORIZED: {
-            "description": "Authentication required"
-        },
-        status.HTTP_403_FORBIDDEN: {
-            "description": "Permission denied"
-        },
-        status.HTTP_404_NOT_FOUND: {
-            "description": "Comment not found"
-        },
+        status.HTTP_401_UNAUTHORIZED: {"description": "Authentication required"},
+        status.HTTP_403_FORBIDDEN: {"description": "Permission denied"},
+        status.HTTP_404_NOT_FOUND: {"description": "Comment not found"},
     },
 )
 async def delete_comment(

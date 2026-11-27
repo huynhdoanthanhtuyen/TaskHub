@@ -34,13 +34,7 @@ class CacheKey:
     ) -> str:
         params_hash = cls._hash_params(params)
 
-        return (
-            f"{CACHE_KEY_PREFIX}:"
-            f"{resource}:"
-            f"{scope}:"
-            f"{operation}:"
-            f"{params_hash}"
-        )
+        return f"{CACHE_KEY_PREFIX}:{resource}:{scope}:{operation}:{params_hash}"
 
     @staticmethod
     def pattern(
@@ -48,9 +42,4 @@ class CacheKey:
         scope: str | UUID = "*",
         operation: str = "*",
     ) -> str:
-        return (
-            f"{CACHE_KEY_PREFIX}:"
-            f"{resource}:"
-            f"{scope}:"
-            f"{operation}:*"
-        )
+        return f"{CACHE_KEY_PREFIX}:{resource}:{scope}:{operation}:*"

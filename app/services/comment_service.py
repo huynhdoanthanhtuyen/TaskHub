@@ -44,9 +44,7 @@ class CommentService:
         self,
         comment_id: UUID,
     ) -> Comment:
-        comment = await self.repository.get_by_id(
-            comment_id
-        )
+        comment = await self.repository.get_by_id(comment_id)
 
         if comment is None:
             raise CommentNotFoundError()
@@ -96,13 +94,9 @@ class CommentService:
         self,
         task: Task,
     ) -> Workspace:
-        project = await self._get_project(
-            task.project_id
-        )
+        project = await self._get_project(task.project_id)
 
-        return await self._get_workspace(
-            project.workspace_id
-        )
+        return await self._get_workspace(project.workspace_id)
 
     async def create_comment(
         self,
@@ -236,10 +230,7 @@ class CommentService:
                     current_user.id,
                 )
 
-                is_owner = (
-                    member is not None
-                    and member.role == WorkspaceRole.OWNER
-                )
+                is_owner = member is not None and member.role == WorkspaceRole.OWNER
 
             if not is_owner:
                 raise CommentDeleteForbiddenError()

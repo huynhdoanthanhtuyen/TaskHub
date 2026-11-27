@@ -16,10 +16,7 @@ class CacheService:
 
     @property
     def enabled(self) -> bool:
-        return (
-            settings.CACHE_ENABLED
-            and self._client is not None
-        )
+        return settings.CACHE_ENABLED and self._client is not None
 
     async def get[T: BaseModel](
         self,
@@ -72,11 +69,7 @@ class CacheService:
         if not self.enabled or self._client is None:
             return False
 
-        expiration = (
-            settings.CACHE_TTL_SECONDS
-            if ttl is None
-            else ttl
-        )
+        expiration = settings.CACHE_TTL_SECONDS if ttl is None else ttl
 
         if expiration <= 0:
             raise ValueError("Cache TTL must be positive")

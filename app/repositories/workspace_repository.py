@@ -38,9 +38,7 @@ class WorkspaceRepository(BaseRepository[Workspace]):
         ]
 
         if role == WorkspaceRole.OWNER:
-            conditions.append(
-                Workspace.owner_id == user_id
-            )
+            conditions.append(Workspace.owner_id == user_id)
 
         elif role is not None:
             member_with_role_exists = (
@@ -53,9 +51,7 @@ class WorkspaceRepository(BaseRepository[Workspace]):
                 .exists()
             )
 
-            conditions.append(
-                Workspace.owner_id != user_id
-            )
+            conditions.append(Workspace.owner_id != user_id)
 
             conditions.append(member_with_role_exists)
 
@@ -67,11 +63,7 @@ class WorkspaceRepository(BaseRepository[Workspace]):
                 )
             )
 
-        count_stmt = (
-            select(func.count())
-            .select_from(Workspace)
-            .where(*conditions)
-        )
+        count_stmt = select(func.count()).select_from(Workspace).where(*conditions)
 
         total = await self.session.scalar(count_stmt) or 0
 
@@ -119,9 +111,7 @@ class WorkspaceRepository(BaseRepository[Workspace]):
         ]
 
         if role == WorkspaceRole.OWNER:
-            conditions.append(
-                Workspace.owner_id == user_id
-            )
+            conditions.append(Workspace.owner_id == user_id)
 
         elif role is not None:
             member_with_role_exists = (
@@ -134,17 +124,11 @@ class WorkspaceRepository(BaseRepository[Workspace]):
                 .exists()
             )
 
-            conditions.append(
-                Workspace.owner_id != user_id
-            )
+            conditions.append(Workspace.owner_id != user_id)
 
             conditions.append(member_with_role_exists)
 
-        stmt = (
-            select(func.count())
-            .select_from(Workspace)
-            .where(*conditions)
-        )
+        stmt = select(func.count()).select_from(Workspace).where(*conditions)
 
         accessible_count = await self.session.scalar(stmt) or 0
 

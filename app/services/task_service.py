@@ -112,7 +112,6 @@ class TaskService:
         if member is None:
             raise TaskAssigneeNotMemberError()
 
-
     async def create_task(
         self,
         project_id: UUID,
@@ -167,9 +166,7 @@ class TaskService:
     ) -> tuple[list[Task], int]:
         project = await self._get_project(project_id)
 
-        workspace = await self._get_workspace(
-            project.workspace_id
-        )
+        workspace = await self._get_workspace(project.workspace_id)
 
         await require_access(
             workspace,
