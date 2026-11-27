@@ -51,6 +51,16 @@ LabelServiceDep = Annotated[
 ]
 
 
+LabelColorQuery = Annotated[
+    str | None,
+    Query(
+        max_length=LABEL_COLOR_MAX_LENGTH,
+        pattern=LABEL_COLOR_PATTERN,
+        description="Filter labels by HEX color",
+    ),
+]
+
+
 @project_labels_router.post(
     "",
     response_model=LabelResponse,
@@ -108,12 +118,7 @@ async def list_labels(
     service: LabelServiceDep,
     pagination: PaginationDep,
     searching: SearchDep,
-    color: str | None = Query(
-        default=None,
-        max_length=LABEL_COLOR_MAX_LENGTH,
-        pattern=LABEL_COLOR_PATTERN,
-        description="Filter labels by HEX color",
-    ),
+    color: LabelColorQuery = None,
 ) -> LabelListResponse:
     labels, total = await service.list_labels(
         project_id=project_id,
@@ -121,7 +126,7 @@ async def list_labels(
         offset=pagination.offset,
         limit=pagination.limit,
         search=searching.search,
-        color=color,
+        color=color.upper() if color is not None else None,
     )
 
     return LabelListResponse(
@@ -133,6 +138,7 @@ async def list_labels(
         offset=pagination.offset,
         limit=pagination.limit,
     )
+
 
 @router.patch(
     "/{label_id}",
@@ -195,19 +201,6 @@ async def delete_label(
     )
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-
 @task_labels_router.get(
     "",
     response_model=LabelListResponse,
@@ -230,12 +223,7 @@ async def list_task_labels(
     service: LabelServiceDep,
     pagination: PaginationDep,
     searching: SearchDep,
-    color: str | None = Query(
-        default=None,
-        max_length=LABEL_COLOR_MAX_LENGTH,
-        pattern=LABEL_COLOR_PATTERN,
-        description="Filter labels by HEX color",
-    ),
+    color: LabelColorQuery = None,
 ) -> LabelListResponse:
     labels, total = await service.list_labels_by_task(
         task_id=task_id,
@@ -243,7 +231,7 @@ async def list_task_labels(
         offset=pagination.offset,
         limit=pagination.limit,
         search=searching.search,
-        color=color,
+        color=color.upper() if color is not None else None,
     )
 
     return LabelListResponse(
@@ -255,14 +243,6 @@ async def list_task_labels(
         offset=pagination.offset,
         limit=pagination.limit,
     )
-
-
-
-
-
-
-
-
 
 
 @task_labels_router.post(

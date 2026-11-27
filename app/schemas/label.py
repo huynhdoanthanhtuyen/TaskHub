@@ -1,7 +1,13 @@
-
+from typing import Annotated
 from uuid import UUID
 
-from pydantic import BaseModel, ConfigDict, Field, model_validator
+from pydantic import (
+    AfterValidator,
+    BaseModel,
+    ConfigDict,
+    Field,
+    model_validator,
+)
 
 from app.core import messages
 from app.core.constants import (
@@ -12,16 +18,22 @@ from app.core.constants import (
 )
 from app.schemas.base import BaseSchema
 
+LabelColor = Annotated[
+    str,
+    Field(
+        max_length=LABEL_COLOR_MAX_LENGTH,
+        pattern=LABEL_COLOR_PATTERN,
+    ),
+    AfterValidator(str.upper),
+]
+
 
 class LabelCreate(BaseSchema):
     name: str = Field(
         min_length=LABEL_NAME_MIN_LENGTH,
         max_length=LABEL_NAME_MAX_LENGTH,
     )
-    color: str = Field(
-        max_length=LABEL_COLOR_MAX_LENGTH,
-        pattern=LABEL_COLOR_PATTERN,
-    )
+    color: LabelColor
 
 
 class LabelUpdate(BaseSchema):
@@ -30,11 +42,7 @@ class LabelUpdate(BaseSchema):
         min_length=LABEL_NAME_MIN_LENGTH,
         max_length=LABEL_NAME_MAX_LENGTH,
     )
-    color: str | None = Field(
-        default=None,
-        max_length=LABEL_COLOR_MAX_LENGTH,
-        pattern=LABEL_COLOR_PATTERN,
-    )
+    color: LabelColor | None = None
 
     @model_validator(mode="after")
     def validate_non_nullable_fields(self):
@@ -43,7 +51,9 @@ class LabelUpdate(BaseSchema):
                 field in self.model_fields_set
                 and getattr(self, field) is None
             ):
-                raise ValueError(messages.FIELD_CANNOT_BE_NULL.format(field=field))
+                raise ValueError(
+                    messages.FIELD_CANNOT_BE_NULL.format(field=field)
+                )
         return self
 
 
