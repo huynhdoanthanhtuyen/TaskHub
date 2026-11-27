@@ -38,7 +38,6 @@ class TokenType(str, Enum):
 
 class AppEnvironment(str, Enum):
     DEVELOPMENT = "development"
-    TESTING = "testing"
     PRODUCTION = "production"
 
 

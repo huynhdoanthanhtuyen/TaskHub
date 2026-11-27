@@ -6,6 +6,7 @@ from pydantic_settings import BaseSettings, SettingsConfigDict
 from app.core.constants import (
     DEFAULT_CACHE_TTL_SECONDS,
     DEFAULT_REDIS_TIMEOUT_SECONDS,
+    EXAMPLE_SECRET_KEY,
 )
 from app.core.enums import AppEnvironment, LogLevel
 
@@ -22,7 +23,7 @@ class Settings(BaseSettings):
     LOG_LEVEL: LogLevel = LogLevel.INFO
 
     # API Documentation
-    DOCS_ENABLED: bool = True
+    DOCS_ENABLED: bool | None = None
 
     # Database
     DATABASE_URL: str
@@ -63,21 +64,23 @@ class Settings(BaseSettings):
     )
 
     @property
-    def is_development(self) -> bool:
-        return self.APP_ENV == AppEnvironment.DEVELOPMENT
-
-    @property
-    def is_testing(self) -> bool:
-        return self.APP_ENV == AppEnvironment.TESTING
-
-    @property
     def is_production(self) -> bool:
         return self.APP_ENV == AppEnvironment.PRODUCTION
 
     @model_validator(mode="after")
     def validate_production_settings(self) -> Self:
-        if self.is_production and self.DEBUG:
-            raise ValueError("DEBUG must be disabled in production")
+        if self.DOCS_ENABLED is None:
+            self.DOCS_ENABLED = not self.is_production
+
+        if self.is_production:
+            if self.DEBUG:
+                raise ValueError("DEBUG must be disabled in production")
+
+            if self.SECRET_KEY == EXAMPLE_SECRET_KEY:
+                raise ValueError("Example SECRET_KEY must not be used in production")
+
+            if self.DOCS_ENABLED:
+                raise ValueError("DOCS_ENABLED must be disabled in production")
 
         return self
 

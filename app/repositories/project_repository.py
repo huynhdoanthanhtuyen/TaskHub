@@ -1,6 +1,6 @@
 import uuid
 
-from sqlalchemy import func, or_, select
+from sqlalchemy import func, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.enums import ProjectStatus
@@ -26,9 +26,7 @@ class ProjectRepository(BaseRepository[Project]):
             conditions.append(Project.status == status)
 
         if search:
-            conditions.append(
-                Project.name.icontains(search, autoescape=True)
-            )
+            conditions.append(Project.name.icontains(search, autoescape=True))
 
         count_stmt = select(func.count()).select_from(Project).where(*conditions)
 
