@@ -33,9 +33,7 @@ class LabelRepository(BaseRepository[Label]):
             )
 
         if color is not None:
-            conditions.append(
-                func.lower(Label.color) == color.lower()
-            )
+            conditions.append(Label.color == color)
 
         count_stmt = (
             select(func.count())
@@ -89,9 +87,7 @@ class LabelRepository(BaseRepository[Label]):
             )
 
         if color is not None:
-            conditions.append(
-                func.lower(Label.color) == color.lower()
-            )
+            conditions.append(Label.color == color)
 
         count_stmt = (
             select(func.count())

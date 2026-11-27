@@ -79,12 +79,6 @@ class UserRepository(BaseRepository[User]):
 
         return list(result.scalars().all()), total
 
-    async def count_users(self) -> int:
-        result = await self.session.execute(
-            select(func.count(User.id))
-        )
-
-        return result.scalar_one()
 
     async def lock_admin_management(self) -> None:
         result = await self.session.execute(
