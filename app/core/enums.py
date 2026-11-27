@@ -30,6 +30,21 @@ class TaskPriority(str, Enum):
     HIGH = "HIGH"
     URGENT = "URGENT"
 
+
 class TokenType(str, Enum):
     ACCESS = "access"
     REFRESH = "refresh"
+
+
+class AppEnvironment(str, Enum):
+    DEVELOPMENT = "development"
+    TESTING = "testing"
+    PRODUCTION = "production"
+
+
+class LogLevel(str, Enum):
+    DEBUG = "DEBUG"
+    INFO = "INFO"
+    WARNING = "WARNING"
+    ERROR = "ERROR"
+    CRITICAL = "CRITICAL"
