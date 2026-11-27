@@ -117,10 +117,7 @@ async def list_users(
     )
 
     return UserListResponse(
-        items=[
-            UserResponse.model_validate(user)
-            for user in users
-        ],
+        items=[UserResponse.model_validate(user) for user in users],
         total=total,
         offset=pagination.offset,
         limit=pagination.limit,

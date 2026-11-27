@@ -140,7 +140,7 @@ class UserService:
             is_active=is_active,
             search=search,
         )
-    
+
     async def admin_update_user(
         self,
         user_id: UUID,

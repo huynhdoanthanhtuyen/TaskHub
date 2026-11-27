@@ -152,21 +152,16 @@ class ProjectService:
         if cached_response is not None:
             return cached_response
 
-        projects, total = (
-            await self.project_repository.get_by_workspace(
-                workspace_id=workspace_id,
-                offset=offset,
-                limit=limit,
-                status=status,
-                search=search,
-            )
+        projects, total = await self.project_repository.get_by_workspace(
+            workspace_id=workspace_id,
+            offset=offset,
+            limit=limit,
+            status=status,
+            search=search,
         )
 
         response = ProjectListResponse(
-            items=[
-                ProjectResponse.model_validate(project)
-                for project in projects
-            ],
+            items=[ProjectResponse.model_validate(project) for project in projects],
             total=total,
             offset=offset,
             limit=limit,

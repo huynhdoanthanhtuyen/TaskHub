@@ -57,15 +57,9 @@ LabelServiceDep = Annotated[
     status_code=status.HTTP_201_CREATED,
     summary="Create a label",
     responses={
-        status.HTTP_401_UNAUTHORIZED: {
-            "description": "Authentication required"
-        },
-        status.HTTP_403_FORBIDDEN: {
-            "description": "Permission denied"
-        },
-        status.HTTP_404_NOT_FOUND: {
-            "description": "Project not found"
-        },
+        status.HTTP_401_UNAUTHORIZED: {"description": "Authentication required"},
+        status.HTTP_403_FORBIDDEN: {"description": "Permission denied"},
+        status.HTTP_404_NOT_FOUND: {"description": "Project not found"},
         status.HTTP_409_CONFLICT: {
             "description": "Label name already exists in the project"
         },
@@ -91,15 +85,9 @@ async def create_label(
     response_model=LabelListResponse,
     summary="List, search and filter labels in a project",
     responses={
-        status.HTTP_401_UNAUTHORIZED: {
-            "description": "Authentication required"
-        },
-        status.HTTP_403_FORBIDDEN: {
-            "description": "Permission denied"
-        },
-        status.HTTP_404_NOT_FOUND: {
-            "description": "Project not found"
-        },
+        status.HTTP_401_UNAUTHORIZED: {"description": "Authentication required"},
+        status.HTTP_403_FORBIDDEN: {"description": "Permission denied"},
+        status.HTTP_404_NOT_FOUND: {"description": "Project not found"},
     },
 )
 async def list_labels(
@@ -125,29 +113,21 @@ async def list_labels(
     )
 
     return LabelListResponse(
-        items=[
-            LabelResponse.model_validate(label)
-            for label in labels
-        ],
+        items=[LabelResponse.model_validate(label) for label in labels],
         total=total,
         offset=pagination.offset,
         limit=pagination.limit,
     )
+
 
 @router.patch(
     "/{label_id}",
     response_model=LabelResponse,
     summary="Update a label",
     responses={
-        status.HTTP_401_UNAUTHORIZED: {
-            "description": "Authentication required"
-        },
-        status.HTTP_403_FORBIDDEN: {
-            "description": "Permission denied"
-        },
-        status.HTTP_404_NOT_FOUND: {
-            "description": "Label not found"
-        },
+        status.HTTP_401_UNAUTHORIZED: {"description": "Authentication required"},
+        status.HTTP_403_FORBIDDEN: {"description": "Permission denied"},
+        status.HTTP_404_NOT_FOUND: {"description": "Label not found"},
         status.HTTP_409_CONFLICT: {
             "description": "Label name already exists in the project"
         },
@@ -173,15 +153,9 @@ async def update_label(
     status_code=status.HTTP_204_NO_CONTENT,
     summary="Delete a label",
     responses={
-        status.HTTP_401_UNAUTHORIZED: {
-            "description": "Authentication required"
-        },
-        status.HTTP_403_FORBIDDEN: {
-            "description": "Permission denied"
-        },
-        status.HTTP_404_NOT_FOUND: {
-            "description": "Label not found"
-        },
+        status.HTTP_401_UNAUTHORIZED: {"description": "Authentication required"},
+        status.HTTP_403_FORBIDDEN: {"description": "Permission denied"},
+        status.HTTP_404_NOT_FOUND: {"description": "Label not found"},
     },
 )
 async def delete_label(
@@ -195,33 +169,14 @@ async def delete_label(
     )
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-
 @task_labels_router.get(
     "",
     response_model=LabelListResponse,
     summary="List, search and filter labels attached to a task",
     responses={
-        status.HTTP_401_UNAUTHORIZED: {
-            "description": "Authentication required"
-        },
-        status.HTTP_403_FORBIDDEN: {
-            "description": "Permission denied"
-        },
-        status.HTTP_404_NOT_FOUND: {
-            "description": "Task not found"
-        },
+        status.HTTP_401_UNAUTHORIZED: {"description": "Authentication required"},
+        status.HTTP_403_FORBIDDEN: {"description": "Permission denied"},
+        status.HTTP_404_NOT_FOUND: {"description": "Task not found"},
     },
 )
 async def list_task_labels(
@@ -247,22 +202,11 @@ async def list_task_labels(
     )
 
     return LabelListResponse(
-        items=[
-            LabelResponse.model_validate(label)
-            for label in labels
-        ],
+        items=[LabelResponse.model_validate(label) for label in labels],
         total=total,
         offset=pagination.offset,
         limit=pagination.limit,
     )
-
-
-
-
-
-
-
-
 
 
 @task_labels_router.post(
@@ -273,18 +217,10 @@ async def list_task_labels(
         status.HTTP_400_BAD_REQUEST: {
             "description": "Label and task belong to different projects"
         },
-        status.HTTP_401_UNAUTHORIZED: {
-            "description": "Authentication required"
-        },
-        status.HTTP_403_FORBIDDEN: {
-            "description": "Permission denied"
-        },
-        status.HTTP_404_NOT_FOUND: {
-            "description": "Task or label not found"
-        },
-        status.HTTP_409_CONFLICT: {
-            "description": "Label already attached"
-        },
+        status.HTTP_401_UNAUTHORIZED: {"description": "Authentication required"},
+        status.HTTP_403_FORBIDDEN: {"description": "Permission denied"},
+        status.HTTP_404_NOT_FOUND: {"description": "Task or label not found"},
+        status.HTTP_409_CONFLICT: {"description": "Label already attached"},
     },
 )
 async def attach_label(
@@ -305,12 +241,8 @@ async def attach_label(
     status_code=status.HTTP_204_NO_CONTENT,
     summary="Detach a label from a task",
     responses={
-        status.HTTP_401_UNAUTHORIZED: {
-            "description": "Authentication required"
-        },
-        status.HTTP_403_FORBIDDEN: {
-            "description": "Permission denied"
-        },
+        status.HTTP_401_UNAUTHORIZED: {"description": "Authentication required"},
+        status.HTTP_403_FORBIDDEN: {"description": "Permission denied"},
         status.HTTP_404_NOT_FOUND: {
             "description": "Task, label or attachment not found"
         },

@@ -20,9 +20,7 @@ class LabelRepository(BaseRepository[Label]):
         search: str | None = None,
         color: str | None = None,
     ) -> tuple[list[Label], int]:
-        conditions = [
-            TaskLabel.task_id == task_id
-        ]
+        conditions = [TaskLabel.task_id == task_id]
 
         if search:
             conditions.append(
@@ -33,9 +31,7 @@ class LabelRepository(BaseRepository[Label]):
             )
 
         if color is not None:
-            conditions.append(
-                func.lower(Label.color) == color.lower()
-            )
+            conditions.append(func.lower(Label.color) == color.lower())
 
         count_stmt = (
             select(func.count())
@@ -76,9 +72,7 @@ class LabelRepository(BaseRepository[Label]):
         search: str | None = None,
         color: str | None = None,
     ) -> tuple[list[Label], int]:
-        conditions = [
-            Label.project_id == project_id
-        ]
+        conditions = [Label.project_id == project_id]
 
         if search:
             conditions.append(
@@ -89,15 +83,9 @@ class LabelRepository(BaseRepository[Label]):
             )
 
         if color is not None:
-            conditions.append(
-                func.lower(Label.color) == color.lower()
-            )
+            conditions.append(func.lower(Label.color) == color.lower())
 
-        count_stmt = (
-            select(func.count())
-            .select_from(Label)
-            .where(*conditions)
-        )
+        count_stmt = select(func.count()).select_from(Label).where(*conditions)
 
         total = await self.session.scalar(count_stmt) or 0
 

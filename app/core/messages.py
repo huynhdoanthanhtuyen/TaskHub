@@ -25,15 +25,9 @@ FIELD_CANNOT_BE_NULL = "{field} cannot be null"
 FULL_NAME_CANNOT_BE_NULL = "full_name cannot be null"
 ROLE_CANNOT_BE_NULL = "role cannot be null"
 IS_ACTIVE_CANNOT_BE_NULL = "is_active cannot be null"
-CANNOT_DEMOTE_OR_DEACTIVATE = (
-    "You cannot demote or deactivate your own account"
-)
-USER_HAS_RELATED_RESOURCES = (
-    "Cannot delete user because related resources still exist."
-)
-NEW_PASSWORD_SAME_AS_OLD = (
-    "New password must be different from the current password."
-)
+CANNOT_DEMOTE_OR_DEACTIVATE = "You cannot demote or deactivate your own account"
+USER_HAS_RELATED_RESOURCES = "Cannot delete user because related resources still exist."
+NEW_PASSWORD_SAME_AS_OLD = "New password must be different from the current password."
 
 # Workspace Management
 WORKSPACE_NOT_FOUND = "Workspace not found"
@@ -52,40 +46,24 @@ PROJECT_NOT_FOUND = "Project not found."
 PROJECT_HAS_RELATED_RESOURCES = (
     "Cannot delete project because it has related resources."
 )
-PROJECT_ARCHIVED = (
-    "Project is archived. Restore it before making changes."
-)
+PROJECT_ARCHIVED = "Project is archived. Restore it before making changes."
 
 # Task Management
-TASK_ASSIGNEE_NOT_MEMBER = (
-    "Assignee must be a member of the workspace."
-)
+TASK_ASSIGNEE_NOT_MEMBER = "Assignee must be a member of the workspace."
 TASK_ASSIGNEE_NOT_FOUND = "Assignee not found"
 TASK_ASSIGNEE_INACTIVE = "Assignee is inactive"
 TASK_DUE_DATE_MUST_BE_IN_FUTURE = "Due date must be in the future"
-TASK_PERMISSION_DENIED = (
-    "You do not have permission to manage tasks."
-)
+TASK_PERMISSION_DENIED = "You do not have permission to manage tasks."
 
 # Label Management
 LABEL_NOT_FOUND = "Label not found"
-LABEL_NAME_ALREADY_EXISTS = (
-    "A label with this name already exists in the project"
-)
-LABEL_PROJECT_MISMATCH = (
-    "Label and task must belong to the same project"
-)
-LABEL_ALREADY_ATTACHED = (
-    "Label is already attached to the task"
-)
-LABEL_NOT_ATTACHED = (
-    "Label is not attached to the task"
-)
+LABEL_NAME_ALREADY_EXISTS = "A label with this name already exists in the project"
+LABEL_PROJECT_MISMATCH = "Label and task must belong to the same project"
+LABEL_ALREADY_ATTACHED = "Label is already attached to the task"
+LABEL_NOT_ATTACHED = "Label is not attached to the task"
 
 # Comment Management
 COMMENT_NOT_FOUND = "Comment not found."
 COMMENT_EDIT_FORBIDDEN = "You can only edit your own comments."
-COMMENT_DELETE_FORBIDDEN = (
-    "You cannot delete another user's comment."
-)
+COMMENT_DELETE_FORBIDDEN = "You cannot delete another user's comment."
 INVALID_DATE_RANGE = "created_from must be before or equal to created_to"

@@ -25,9 +25,7 @@ class ProjectRepository(BaseRepository[Project]):
         ]
 
         if status is not None:
-            conditions.append(
-                Project.status == status
-            )
+            conditions.append(Project.status == status)
 
         if search:
             conditions.append(
@@ -43,11 +41,7 @@ class ProjectRepository(BaseRepository[Project]):
                 )
             )
 
-        count_stmt = (
-            select(func.count())
-            .select_from(Project)
-            .where(*conditions)
-        )
+        count_stmt = select(func.count()).select_from(Project).where(*conditions)
 
         total = await self.session.scalar(count_stmt) or 0
 

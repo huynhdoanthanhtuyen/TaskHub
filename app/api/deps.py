@@ -83,6 +83,7 @@ PaginationDep = Annotated[
     Depends(PaginationParams),
 ]
 
+
 class SearchParams:
     def __init__(
         self,
@@ -99,6 +100,7 @@ SearchDep = Annotated[
     SearchParams,
     Depends(SearchParams),
 ]
+
 
 def get_cache_service(request: Request) -> CacheService:
     client = getattr(

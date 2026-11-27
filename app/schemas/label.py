@@ -1,4 +1,3 @@
-
 from uuid import UUID
 
 from pydantic import BaseModel, ConfigDict, Field, model_validator
@@ -39,10 +38,7 @@ class LabelUpdate(BaseSchema):
     @model_validator(mode="after")
     def validate_non_nullable_fields(self):
         for field in ("name", "color"):
-            if (
-                field in self.model_fields_set
-                and getattr(self, field) is None
-            ):
+            if field in self.model_fields_set and getattr(self, field) is None:
                 raise ValueError(messages.FIELD_CANNOT_BE_NULL.format(field=field))
         return self
 
