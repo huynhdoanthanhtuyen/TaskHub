@@ -138,18 +138,7 @@ class WorkspaceService:
         )
 
         if cached_response is not None:
-            workspace_ids = [workspace.id for workspace in cached_response.items]
-
-            has_access = await self.workspace_repository.can_access_all(
-                user_id=current_user.id,
-                workspace_ids=workspace_ids,
-                role=role,
-            )
-
-            if has_access:
-                return cached_response
-
-            await self.cache.delete(cache_key)
+            return cached_response
 
         workspaces, total = await self.workspace_repository.get_by_user(
             offset=offset,

@@ -137,7 +137,6 @@ class ProjectService:
             resource="projects",
             scope=workspace_id,
             operation="list",
-            user_id=current_user.id,
             offset=offset,
             limit=limit,
             status=status,
