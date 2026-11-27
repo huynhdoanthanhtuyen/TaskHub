@@ -43,13 +43,17 @@ from app.db.redis import (
     create_redis_client,
 )
 
-logging.basicConfig(level=logging.INFO)
+logging.basicConfig(level=settings.LOG_LEVEL.value)
+
 logger = logging.getLogger(__name__)
 
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
-    logger.info("TaskHub API is starting ...")
+    logger.info(
+        "TaskHub API is starting in %s environment",
+        settings.APP_ENV.value,
+    )
 
     app.state.redis = None
 
@@ -71,11 +75,15 @@ async def lifespan(app: FastAPI):
 
         logger.info("TaskHub API is shutting down...")
 
+
 app = FastAPI(
     title=settings.APP_NAME,
     version=settings.APP_VERSION,
     debug=settings.DEBUG,
     lifespan=lifespan,
+    docs_url="/docs" if settings.DOCS_ENABLED else None,
+    redoc_url="/redoc" if settings.DOCS_ENABLED else None,
+    openapi_url="/openapi.json" if settings.DOCS_ENABLED else None,
 )
 
 
@@ -107,11 +115,7 @@ async def root():
     return {"message": "Welcome to TaskHub API"}
 
 
-
-app.include_router(
-    auth_router,
-    prefix="/api/v1",
-)
+app.include_router(auth_router, prefix="/api/v1")
 
 app.include_router(workspace_router, prefix="/api/v1")
 app.include_router(users_router, prefix="/api/v1")
@@ -125,6 +129,7 @@ app.include_router(
     project_router,
     prefix="/api/v1",
 )
+
 app.include_router(
     project_tasks_router,
     prefix="/api/v1",
@@ -134,7 +139,6 @@ app.include_router(
     tasks_router,
     prefix="/api/v1",
 )
-
 
 app.include_router(project_labels_router, prefix="/api/v1")
 app.include_router(labels_router, prefix="/api/v1")
